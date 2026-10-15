@@ -186,13 +186,7 @@ button { cursor: pointer; }
 .card-badge-trend { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
 
 .trip-card { border-radius: 1.5rem; background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%); padding: 1.5rem; box-shadow: 0 18px 40px rgba(14,165,233,.28); }
-.trip-stat-tile { border-radius: 1rem; background: rgba(255,255,255,.16); padding: .8rem .6rem; text-align: center; backdrop-filter: blur(4px); }
-.timeline-row { display: flex; gap: .9rem; }
-.timeline-rail { position: relative; display: flex; width: 1.5rem; flex: none; flex-direction: column; align-items: center; }
-.timeline-rail i { position: absolute; top: 1.6rem; bottom: 0; width: 2px; background: #e2e8f0; }
-.timeline-dot { position: relative; z-index: 1; display: flex; height: 1.4rem; width: 1.4rem; flex: none; align-items: center; justify-content: center; border-radius: 50%; background: #e2e8f0; color: #94a3b8; }
-.timeline-dot-done { background: #0ea5e9; color: #fff; }
-.timeline-dot-current { background: #f59e0b; color: #fff; box-shadow: 0 0 0 4px #fef3c7; }
+.voucher-ticket { position: relative; display: flex; align-items: center; gap: .9rem; overflow: hidden; border-radius: 1.1rem; background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 60%, #14b8a6 130%); padding: .95rem 1rem; color: #fff; box-shadow: 0 12px 26px rgba(2,132,199,.22); }
 
 .ticket-success-band { display: flex; align-items: center; gap: .9rem; background: linear-gradient(135deg, #10b981, #059669); padding: 1.6rem 1.25rem 2.25rem; }
 .ticket-stub { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 1.5rem; background: #fff; box-shadow: 0 16px 40px rgba(15,23,42,.08); }
@@ -259,8 +253,10 @@ button { cursor: pointer; }
 .booking-time { display: flex; min-width: 4.5rem; flex-direction: column; align-items: center; justify-content: center; border-radius: .8rem; background: #f0f9ff; padding: .65rem; color: #0369a1; }
 .booking-time strong { font-family: 'Poppins', sans-serif; font-size: .9rem; }
 .booking-time span { margin-top: .15rem; font-size: .55rem; font-weight: 700; letter-spacing: .08em; }
-.visit-history-item { display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #f1f5f9; padding: 1rem .25rem; }
+.visit-history-item { display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #f1f5f9; padding: 1rem .25rem; transition: background-color .15s ease; }
 .visit-history-item:last-child { border-bottom: 0; }
+button.visit-history-item { width: 100%; border-radius: .75rem; text-align: left; background: transparent; }
+button.visit-history-item:hover { background: #f8fafc; }
 .visit-history-icon { display: flex; height: 2.75rem; width: 2.75rem; flex: none; align-items: center; justify-content: center; border-radius: .9rem; background: #e0f2fe; color: #0284c7; }
 .agenda-time { width: 3.5rem; flex: none; padding-top: .1rem; text-align: right; }
 .agenda-time strong { display: block; font-size: .75rem; color: #334155; }
@@ -424,8 +420,8 @@ button { cursor: pointer; }
   .login-shell { display: block; }
   .login-story { display: none; }
   .login-panel { flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; padding-bottom: 1.75rem; }
-  .login-mobile-hero { position: relative; display: block; flex: none; width: 100%; height: 13.5rem; overflow: hidden; }
-  .login-form-card { position: relative; z-index: 1; max-width: none !important; margin-top: -1.5rem; border-radius: 1.75rem 1.75rem 0 0; background: #fff; padding: 1.35rem 1.25rem 1.5rem !important; }
+  .login-mobile-hero { position: relative; display: block; flex: none; width: 100%; height: 14rem; overflow: hidden; }
+  .login-form-card { position: relative; z-index: 1; max-width: none !important; margin-top: -1.5rem; border-radius: 1.75rem 1.75rem 0 0; background: #fff; padding: 1.4rem 1.35rem 1.5rem !important; }
   .login-sheet-brand { display: none !important; }
   .role-card { min-height: 4.75rem; flex-direction: column; align-items: center; justify-content: center; gap: .4rem; padding: .7rem .35rem; border-radius: .9rem; text-align: center; }
   .role-desc { display: none !important; }

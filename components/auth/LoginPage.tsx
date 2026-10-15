@@ -130,7 +130,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-950/25 to-slate-950/70" />
-          <div className="relative flex h-full flex-col justify-between p-5">
+          <div className="relative flex h-full flex-col justify-between px-6 pt-5 pb-9">
             <div className="flex items-center gap-2.5">
               <div className="logo-mark logo-mark-inverse">
                 <img src="/logo-silaq-icon.png" alt="" />
@@ -148,7 +148,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <div className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md">
                 <MapPin className="h-3.5 w-3.5" /> Jelajahi Lombok, sesukamu
               </div>
-              <h1 className="font-display mt-3 text-[1.6rem] font-bold leading-snug text-white">
+              <h1 className="font-display mt-3 max-w-[16ch] text-[1.3rem] font-bold leading-snug text-white">
                 Satu aplikasi untuk seluruh perjalananmu.
               </h1>
             </div>

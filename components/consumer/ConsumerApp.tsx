@@ -31,7 +31,10 @@ import {
   ChevronLeft,
   Leaf,
   CreditCard,
-  Pencil
+  Pencil,
+  Gift,
+  UtensilsCrossed,
+  Shirt
 } from 'lucide-react'
 import {
   INITIAL_DESTINATIONS,
@@ -77,6 +80,58 @@ const HOME_SECTIONS: {
   { label: 'Pantai & Gili', test: (c) => c === 'Pantai' || c === 'Gili' },
   { label: 'Pegunungan', test: (c) => c === 'Gunung' || c === 'Air Terjun' },
   { label: 'Budaya', test: (c) => c === 'Budaya' },
+]
+
+const TOTAL_TRIPS = 12
+
+const TRIP_HISTORY: {
+  title: string
+  date: string
+  duration: string
+  places: number
+}[] = [
+  { title: 'Trip ke Lombok', date: '1–5 Mar 2026', duration: '5 Hari · 4 Malam', places: 8 },
+  { title: 'Gili Weekend', date: '14–15 Feb 2026', duration: '2 Hari · 1 Malam', places: 3 },
+  { title: 'Sembalun & Trek Rinjani', date: '24–26 Jan 2026', duration: '3 Hari · 2 Malam', places: 4 },
+  { title: 'Budaya Sasak Roundtrip', date: '10–11 Jan 2026', duration: '2 Hari · 1 Malam', places: 5 },
+]
+
+const REWARD_TIERS: {
+  id: string
+  title: string
+  reward: string
+  desc: string
+  required: number
+  code: string
+  icon: React.ComponentType<{ className?: string }>
+}[] = [
+  {
+    id: 'food',
+    title: 'Voucher Makanan',
+    reward: 'Diskon Rp 50.000',
+    desc: 'Berlaku di seluruh mitra kuliner SILAQ.',
+    required: 5,
+    code: 'LMBK-FOOD-5K2P',
+    icon: UtensilsCrossed,
+  },
+  {
+    id: 'merch',
+    title: 'Merchandise SILAQ',
+    reward: 'Totebag eksklusif',
+    desc: 'Koleksi terbatas untuk traveler setia.',
+    required: 10,
+    code: 'LMBK-MERCH-9T4X',
+    icon: Shirt,
+  },
+  {
+    id: 'ticket',
+    title: 'Tiket Destinasi',
+    reward: '1 tiket gratis',
+    desc: 'Pilih destinasi favoritmu langsung di aplikasi.',
+    required: 20,
+    code: 'LMBK-TICKET-3G7N',
+    icon: Ticket,
+  },
 ]
 
 function DestinationCarouselCard({
@@ -327,6 +382,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
   const [eventCategory, setEventCategory] = useState('Semua')
   const [saved, setSaved] = useState<string[]>([])
   const [notice, setNotice] = useState('')
+  const [claimedVouchers, setClaimedVouchers] = useState<string[]>([])
   const [overview, setOverview] = useState<Destination | null>(null)
   const [aiInput, setAiInput] = useState('')
   const chatRef = useRef<HTMLDivElement | null>(null)
@@ -385,6 +441,13 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     if (!text.trim() || isBusy) return
     send(text)
     setAiInput('')
+  }
+
+  const claimVoucher = (tierId: string) => {
+    const tier = REWARD_TIERS.find((item) => item.id === tierId)
+    if (!tier || TOTAL_TRIPS < tier.required || claimedVouchers.includes(tierId)) return
+    setClaimedVouchers((prev) => [...prev, tierId])
+    setNotice(`Voucher “${tier.title}” diklaim! Kode ${tier.code} berlaku s/d 30 Apr 2026.`)
   }
 
   const basePrice =
@@ -727,22 +790,26 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
           <article className="journey-card">
             <div className="relative z-10 max-w-md">
               <span className="inline-flex rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white">
-                Perjalanan aktif
+                Perjalanan terakhir
               </span>
               <h2 className="font-display mt-5 text-3xl font-semibold text-white">
-                Lombok escape, 5 hari
+                Trip ke Lombok, 5 hari
               </h2>
               <p className="mt-2 text-sm leading-6 text-white/70">
-                Hari ke-3 dari 5. Festival Bau Nyale adalah agenda berikutnya.
+                Selesai 5 Mar 2026 · 8 destinasi · 2 event. Terus jalan untuk
+                kumpulkan voucher!
               </p>
               <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/20">
                 <div className="h-full w-3/5 rounded-full bg-sunset-400" />
               </div>
+              <p className="mt-2.5 text-xs font-semibold text-white/85">
+                12 dari 20 perjalanan menuju Tiket Destinasi
+              </p>
               <button
                 onClick={() => setPage('Perjalanan')}
-                className="app-button app-button-cta mt-7"
+                className="app-button app-button-cta mt-6"
               >
-                <span>Lanjutkan perjalanan</span>
+                <span>Lihat riwayat & voucher</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -970,115 +1037,233 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     }
 
     if (page === 'Perjalanan') {
-      const timeline: {
-        day: string
-        time: string
-        title: string
-        note: string
-        state: 'done' | 'current' | 'upcoming'
-      }[] = [
-        { day: 'Hari 1', time: '13:00', title: 'Tiba di Bandara BIZAM', note: 'Transfer ke hotel', state: 'done' },
-        { day: 'Hari 2', time: '08:00', title: 'Gili Trawangan', note: 'Lihat E-Ticket', state: 'done' },
-        { day: 'Hari 3', time: '08:00', title: 'Festival Bau Nyale', note: 'Reminder aktif 🔔', state: 'current' },
-        { day: 'Hari 4', time: '05:00', title: 'Rinjani Trekking', note: 'AI Guide siap', state: 'upcoming' },
-      ]
+      const nextTier = REWARD_TIERS.find((tier) => tier.required > TOTAL_TRIPS)
+      const rewardProgress = nextTier
+        ? Math.min(100, Math.round((TOTAL_TRIPS / nextTier.required) * 100))
+        : 100
       return (
         <section className="consumer-container py-6 sm:py-12">
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
+              <p className="section-eyebrow">Riwayat</p>
               <h2 className="section-title">Perjalanan Saya</h2>
-              <p className="section-description">Trip ke Lombok · 5 Hari 4 Malam</p>
+              <p className="section-description">
+                Semua perjalanan yang sudah kamu selesaikan — tak ada yang mendatang.
+              </p>
             </div>
             <button
-              onClick={() => setNotice('Filter perjalanan: menampilkan trip aktif.')}
+              onClick={() => setNotice('Filter riwayat: menampilkan seluruh perjalanan selesai.')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500"
-              aria-label="Filter perjalanan"
+              aria-label="Filter riwayat"
             >
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Trip summary card — teal gradient like mockup */}
-          <article className="trip-card">
-            <div className="flex items-start justify-between gap-3">
+          {/* Past trips — history only, no upcoming */}
+          <article className="panel-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="font-display text-2xl font-bold text-white">
-                  Trip ke Lombok
-                </h3>
-                <p className="mt-1 text-xs font-medium text-white/80">
-                  5 Hari · 4 Malam
+                <h3 className="panel-title">Perjalanan sebelumnya</h3>
+                <p className="panel-subtitle">
+                  {TOTAL_TRIPS} perjalanan tercatat · menampilkan 4 terakhir
                 </p>
               </div>
-              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">
-                Aktif
+              <span className="rounded-full bg-eco-50 px-3 py-1.5 text-[10px] font-bold text-eco-700">
+                Semua selesai
               </span>
             </div>
-            <p className="mt-6 text-xs font-semibold text-white/90">
-              3 dari 5 hari selesai
-            </p>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/25">
-              <div className="h-full w-3/5 rounded-full bg-amber-400" />
-            </div>
-            <div className="mt-5 grid grid-cols-3 gap-2.5">
-              {[
-                ['8', 'Destinasi'],
-                ['2', 'Event'],
-                ['12.5kg', 'CO₂'],
-              ].map(([value, label]) => (
-                <div key={label} className="trip-stat-tile">
-                  <strong className="font-display block text-lg font-bold text-white">
-                    {value}
-                  </strong>
-                  <span className="mt-0.5 block text-[10px] font-semibold text-white/75">
-                    {label}
+            <div className="mt-1">
+              {TRIP_HISTORY.map((trip, index) => (
+                <button
+                  key={trip.title}
+                  onClick={() => setNotice(`Detail trip “${trip.title}” (${trip.date}) — riwayat demo.`)}
+                  className="visit-history-item w-full cursor-pointer text-left"
+                >
+                  <span className="visit-history-icon">
+                    <Compass className="h-5 w-5" />
                   </span>
-                </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-800">{trip.title}</p>
+                      {index === 0 && (
+                        <span className="rounded-full bg-ocean-50 px-2 py-0.5 text-[9px] font-bold text-ocean-600">
+                          Terbaru
+                        </span>
+                      )}
+                      <span className="rounded-full bg-eco-50 px-2 py-0.5 text-[9px] font-bold text-eco-700">
+                        Selesai
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {trip.date} · {trip.duration}
+                    </p>
+                  </div>
+                  <span className="hidden shrink-0 text-xs font-bold text-slate-500 sm:block">
+                    {trip.places} destinasi
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+                </button>
               ))}
             </div>
           </article>
 
-          <h3 className="font-display mt-9 text-lg font-semibold text-slate-900">
-            Timeline Perjalanan
-          </h3>
-          <article className="panel-card mt-4">
-            {timeline.map((item, index) => (
-              <div key={item.title} className="timeline-row">
-                <div className="timeline-rail">
+          {/* Accumulation rewards */}
+          <div className="mt-9 mb-4">
+            <p className="section-eyebrow">Akumulasi & Hadiah</p>
+            <h2 className="section-title">Voucher Perjalanan</h2>
+            <p className="section-description">
+              Makin sering pergi, makin banyak hadiah — kumpulkan perjalanan lalu klaim vouchernya.
+            </p>
+          </div>
+
+          <article className="trip-card">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-white/75">Akumulasi perjalanan</p>
+                <h3 className="font-display mt-1 text-2xl font-bold text-white">
+                  {TOTAL_TRIPS} perjalanan selesai
+                </h3>
+              </div>
+              <span className="rounded-full bg-white/20 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
+                <Gift className="mr-1 inline h-3.5 w-3.5" />
+                {claimedVouchers.length} voucher diklaim
+              </span>
+            </div>
+            <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-white/25">
+              <div
+                className="h-full rounded-full bg-amber-400"
+                style={{ width: `${rewardProgress}%` }}
+              />
+            </div>
+            <p className="mt-2.5 text-xs font-semibold text-white/90">
+              {nextTier
+                ? `${nextTier.required - TOTAL_TRIPS} perjalanan lagi menuju ${nextTier.title} (${nextTier.required} perjalanan)`
+                : 'Semua hadiah sudah terbuka!'}
+            </p>
+          </article>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            {REWARD_TIERS.map((tier) => {
+              const unlocked = TOTAL_TRIPS >= tier.required
+              const claimed = claimedVouchers.includes(tier.id)
+              const TierIcon = tier.icon
+              const tierProgress = Math.min(100, Math.round((TOTAL_TRIPS / tier.required) * 100))
+              return (
+                <article key={tier.id} className="panel-card flex flex-col">
                   <span
-                    className={
-                      item.state === 'done'
-                        ? 'timeline-dot timeline-dot-done'
-                        : item.state === 'current'
-                          ? 'timeline-dot timeline-dot-current'
-                          : 'timeline-dot'
-                    }
-                  >
-                    {item.state === 'done' && <Check className="h-3 w-3 stroke-3" />}
-                  </span>
-                  {index < timeline.length - 1 && <i />}
-                </div>
-                <div className="min-w-0 flex-1 pb-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      {item.day} - {item.time}
-                    </p>
-                    {item.state === 'current' && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-600">
-                        Sekarang
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className={`font-display mt-1 text-sm font-bold ${
-                      item.state === 'current' ? 'text-amber-600' : 'text-slate-800'
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                      unlocked ? 'bg-ocean-50 text-ocean-600' : 'bg-slate-100 text-slate-400'
                     }`}
                   >
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-400">{item.note}</p>
-                </div>
+                    <TierIcon className="h-5 w-5" />
+                  </span>
+                  <h3 className="font-display mt-3.5 text-sm font-bold text-slate-900">
+                    {tier.title}
+                  </h3>
+                  <p className="mt-0.5 text-xs font-semibold text-ocean-600">{tier.reward}</p>
+                  <p className="mt-1.5 flex-1 text-[11px] leading-4 text-slate-400">{tier.desc}</p>
+                  {!unlocked && (
+                    <div className="mt-3.5">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-ocean-400"
+                          style={{ width: `${tierProgress}%` }}
+                        />
+                      </div>
+                      <p className="mt-1.5 text-[10px] font-bold text-slate-400">
+                        {TOTAL_TRIPS}/{tier.required} perjalanan
+                      </p>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => claimVoucher(tier.id)}
+                    disabled={claimed}
+                    className={`app-button mt-4 w-full justify-center ${
+                      claimed
+                        ? 'border-eco-200 bg-eco-50 text-eco-700'
+                        : unlocked
+                          ? 'app-button-primary'
+                          : 'app-button-secondary text-slate-400'
+                    }`}
+                  >
+                    {claimed
+                      ? 'Terklaim ✓'
+                      : unlocked
+                        ? 'Klaim voucher'
+                        : `Butuh ${tier.required} perjalanan`}
+                  </button>
+                </article>
+              )
+            })}
+          </div>
+
+          {/* Claimed vouchers */}
+          <article className="panel-card mt-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="panel-title">Voucher Saya</h3>
+                <p className="panel-subtitle">
+                  {claimedVouchers.length > 0
+                    ? `${claimedVouchers.length} voucher aktif`
+                    : 'Belum ada voucher aktif'}
+                </p>
               </div>
-            ))}
+              <span className="rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-bold text-amber-600">
+                Berlaku s/d 30 Apr 2026
+              </span>
+            </div>
+            {claimedVouchers.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                  <Gift className="h-6 w-6" />
+                </span>
+                <p className="font-display mt-3 text-sm font-bold text-slate-700">
+                  Belum ada voucher
+                </p>
+                <p className="mt-1 max-w-xs text-xs leading-5 text-slate-400">
+                  {REWARD_TIERS.filter((tier) => TOTAL_TRIPS >= tier.required).length >
+                  claimedVouchers.length
+                    ? 'Ada voucher yang bisa diklaim — tekan tombol Klaim voucher di atas.'
+                    : 'Selesaikan lebih banyak perjalanan untuk membuka voucher berikutnya.'}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {claimedVouchers.map((tierId) => {
+                  const tier = REWARD_TIERS.find((item) => item.id === tierId)
+                  if (!tier) return null
+                  const VoucherIcon = tier.icon
+                  return (
+                    <div key={tierId} className="voucher-ticket">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white">
+                        <VoucherIcon className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-white">{tier.title}</p>
+                        <p className="mt-0.5 text-xs text-white/85">
+                          {tier.reward} · s/d 30 Apr 2026
+                        </p>
+                        <p className="mt-1.5 inline-block rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white">
+                          Kode: {tier.code}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          setNotice(
+                            `Voucher ${tier.code} siap dipakai — tunjukkan kode ini di kasir mitra.`
+                          )
+                        }
+                        className="shrink-0 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-ocean-700"
+                      >
+                        Gunakan
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </article>
 
           <div className="mt-9 mb-6">
@@ -1969,7 +2154,16 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
         {
           icon: <Compass className="h-4 w-4 text-ocean-500" />,
           title: 'Perjalanan Saya',
-          subtitle: 'Trip aktif · 5 hari',
+          subtitle: `Riwayat · ${TOTAL_TRIPS} trip selesai`,
+          action: () => setPage('Perjalanan'),
+        },
+        {
+          icon: <Gift className="h-4 w-4 text-amber-500" />,
+          title: 'Voucher & Hadiah',
+          subtitle: `${
+            REWARD_TIERS.filter((tier) => TOTAL_TRIPS >= tier.required).length -
+            claimedVouchers.length
+          } voucher bisa diklaim`,
           action: () => setPage('Perjalanan'),
         },
       ]
