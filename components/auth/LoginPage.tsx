@@ -122,9 +122,42 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
       {/* Right Login Form */}
       <section className="login-panel">
-        <div className="w-full max-w-md px-5 py-6 sm:px-8 sm:py-10">
-          {/* Brand — compact, mobile/tablet only */}
-          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
+        {/* Mobile hero — matches the app mockup (hidden on desktop) */}
+        <div className="login-mobile-hero">
+          <img
+            src="https://images.unsplash.com/photo-1685975875980-f19fbd4d36a6?w=1200&h=800&fit=crop&auto=format"
+            alt="Pantai tropis di Lombok"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-950/25 to-slate-950/70" />
+          <div className="relative flex h-full flex-col justify-between p-5">
+            <div className="flex items-center gap-2.5">
+              <div className="logo-mark logo-mark-inverse">
+                <img src="/logo-silaq-icon.png" alt="" />
+              </div>
+              <div>
+                <span className="font-display block text-base font-bold leading-tight text-white">
+                  SILAQ
+                </span>
+                <span className="block text-[8px] font-semibold uppercase tracking-[.18em] text-white/70">
+                  Travel Ecosystem
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md">
+                <MapPin className="h-3.5 w-3.5" /> Jelajahi Lombok, sesukamu
+              </div>
+              <h1 className="font-display mt-3 text-[1.6rem] font-bold leading-snug text-white">
+                Satu aplikasi untuk seluruh perjalananmu.
+              </h1>
+            </div>
+          </div>
+        </div>
+
+        <div className="login-form-card w-full max-w-md px-5 py-6 sm:px-8 sm:py-10">
+          {/* Brand — tablet only (hidden on mobile hero + desktop story) */}
+          <div className="login-sheet-brand mb-6 flex items-center gap-2.5 lg:hidden">
             <div className="logo-mark">
               <img src="/logo-silaq-icon.png" alt="" />
             </div>
@@ -139,36 +172,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <div className="mb-5 sm:mb-8">
-            <p className="mb-1.5 text-xs font-semibold text-ocean-600 sm:mb-2 sm:text-sm">
+            <p className="login-eyebrow mb-1.5 hidden text-xs font-semibold text-ocean-600 sm:mb-2 sm:block sm:text-sm">
               Selamat datang kembali
             </p>
             <h2 className="font-display text-2xl font-semibold text-slate-950 sm:text-3xl">
               Masuk ke SILAQ
             </h2>
-            <p className="mt-2 hidden text-sm leading-6 text-slate-500 sm:block">
+            <p className="mt-2 text-sm leading-6 text-slate-500">
               Pilih tipe akun untuk melihat pengalaman dashboard yang sesuai.
             </p>
           </div>
 
-          {/* Google sign-in (demo placeholder) */}
-          <button
-            type="button"
-            onClick={() => onLogin(role)}
-            className="google-button"
-          >
-            <GoogleIcon />
-            <span>Lanjutkan dengan Google</span>
-          </button>
-
-          <div className="my-4 flex items-center gap-3 sm:my-6">
-            <span className="h-px flex-1 bg-slate-200" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              atau masuk dengan email
-            </span>
-            <span className="h-px flex-1 bg-slate-200" />
-          </div>
-
-          {/* Role Selection — compact pills on mobile, cards on desktop */}
+          {/* Role Selection — icon tabs on mobile, cards on desktop */}
           <div className="role-grid mb-5 sm:mb-7">
             {roleOptions.map((option) => (
               <button
@@ -198,6 +213,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 </span>
               </button>
             ))}
+          </div>
+
+          {/* Google sign-in (demo placeholder) */}
+          <button
+            type="button"
+            onClick={() => onLogin(role)}
+            className="google-button"
+          >
+            <GoogleIcon />
+            <span>Lanjutkan dengan Google</span>
+          </button>
+
+          <div className="my-4 flex items-center gap-3 sm:my-6">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              atau masuk dengan email
+            </span>
+            <span className="h-px flex-1 bg-slate-200" />
           </div>
 
           <form onSubmit={submit} className="space-y-3.5 sm:space-y-5">
@@ -275,6 +308,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               {loginMessage}
             </div>
           )}
+
+          <div className="login-demo-note mt-5 hidden items-center gap-3">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Akses demo aman
+            </span>
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
 
           <p className="mt-6 hidden text-center text-xs leading-5 text-slate-400 sm:block">
             Prototype ini menggunakan akun demo. Pilih peran di atas lalu klik
