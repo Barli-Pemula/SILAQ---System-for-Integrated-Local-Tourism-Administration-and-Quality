@@ -343,6 +343,38 @@ export const INITIAL_EVENTS: TourismEvent[] = [
       { time: '06:00', activity: 'Race Start 21K Trail' },
       { time: '14:00', activity: 'Medal Ceremony & Sasak Feast' }
     ]
+  },
+  {
+    id: 'evt-sasak',
+    title: 'Sasak Cultural Night',
+    date: '28 Februari 2026',
+    time: '19:00 - 23:00 WITA',
+    location: 'Desa Adat Sade, Lombok Tengah',
+    category: 'Budaya',
+    price: 50000,
+    image: 'https://images.unsplash.com/photo-1746964246729-3bcad599e959?w=900&h=700&fit=crop&auto=format',
+    description: 'Malam budaya Sasak dengan pertunjukan Gendang Beleq, tari Ratoe Jaroe, sajian ayam Taliwang, dan workshop tenun singkat di Bale Tani.',
+    schedule: [
+      { time: '19:00', activity: 'Pembukaan & Tarian Gendang Beleq' },
+      { time: '20:30', activity: 'Workshop Tenun Kilat & Kuliner Sasak' },
+      { time: '22:00', activity: 'Panggung Api Unggun Rakyat' }
+    ]
+  },
+  {
+    id: 'evt-kuliner',
+    title: 'Lombok Seafood Night Market',
+    date: '28 Februari 2026',
+    time: '17:00 - 22:00 WITA',
+    location: 'Pantai Ampenan, Kota Mataram',
+    category: 'Kuliner',
+    price: 'Gratis',
+    image: 'https://images.unsplash.com/photo-1493558103817-58b2924bce98?w=900&h=700&fit=crop&auto=format',
+    description: 'Pasar kuliner tepi pantai dengan lebih dari 40 lapak seafood bakar, sate tanjung, ayam Taliwang, dan es cendol khas Ampenan.',
+    schedule: [
+      { time: '17:00', activity: 'Opening lapak kuliner nusantara' },
+      { time: '19:00', activity: 'Cooking show seafood bakar' },
+      { time: '21:00', activity: 'Live music pesisir Ampenan' }
+    ]
   }
 ]
 

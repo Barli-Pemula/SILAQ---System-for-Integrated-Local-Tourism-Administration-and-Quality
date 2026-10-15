@@ -18,19 +18,20 @@ import {
   Download,
   Send,
   Bot,
-  Clock,
   Heart,
   ChevronRight,
   X,
-  Menu,
   Bell,
   LogOut,
-  ChevronDown,
   ExternalLink,
   House,
   LoaderCircle,
-  CircleCheck,
-  RefreshCw
+  RefreshCw,
+  SlidersHorizontal,
+  ChevronLeft,
+  Leaf,
+  CreditCard,
+  Pencil
 } from 'lucide-react'
 import {
   INITIAL_DESTINATIONS,
@@ -38,13 +39,16 @@ import {
   CARBON_PROJECTS
 } from '@/lib/smart-tourism-data'
 import { AiAnswer, useAiAssistant } from '@/lib/ai-assistant'
-import { Destination, TicketTier } from '@/types/smart-tourism'
+import { Destination } from '@/types/smart-tourism'
 
 interface ConsumerAppProps {
   onLogout: () => void
 }
 
-type ConsumerPage = 'Beranda' | 'Jelajahi' | 'Perjalanan' | 'Tiket Saya' | 'Kalender' | 'AI Guide' | 'Pemesanan'
+type ConsumerPage = 'Beranda' | 'Jelajahi' | 'Perjalanan' | 'Tiket Saya' | 'Kalender' | 'AI Guide' | 'Pemesanan' | 'Karbon' | 'Profil'
+
+const navLabel = (page: ConsumerPage) =>
+  page === 'Kalender' ? 'Event' : page === 'Beranda' ? 'Home' : page
 
 const AI_STAGES = [
   'Menganalisis pertanyaanmu…',
@@ -80,14 +84,17 @@ function DestinationCarouselCard({
   isSaved,
   onToggleSave,
   onOpen,
-  onBook,
 }: {
   item: Destination
   isSaved: boolean
   onToggleSave: (name: string) => void
   onOpen: (item: Destination) => void
-  onBook: (item: Destination) => void
 }) {
+  const badge = item.isPopular
+    ? { text: 'Terpopuler', className: 'card-badge-promo' }
+    : item.rating >= 4.8
+      ? { text: 'Trending', className: 'card-badge-trend' }
+      : null
   const open = () => onOpen(item)
   return (
     <article
@@ -110,12 +117,11 @@ function DestinationCarouselCard({
           decoding="async"
           className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
         />
-        <span className="absolute top-2.5 left-2.5 rounded-full bg-slate-950/70 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-          {item.category}
-        </span>
-        {item.discount && (
-          <span className="absolute bottom-2.5 left-2.5 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
-            {item.discount}
+        {badge && (
+          <span
+            className={`absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold text-white ${badge.className}`}
+          >
+            {badge.text}
           </span>
         )}
         <button
@@ -124,46 +130,21 @@ function DestinationCarouselCard({
             onToggleSave(item.name)
           }}
           aria-label="Simpan destinasi"
-          className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-slate-600 backdrop-blur-md hover:text-rose-500"
+          className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm backdrop-blur-md hover:text-rose-500"
         >
           <Heart
             className={`h-4 w-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`}
           />
         </button>
       </div>
-      <div className="p-3.5">
-        <p className="flex items-center gap-1 text-[11px] text-slate-400">
-          <MapPin className="h-3 w-3 shrink-0 text-ocean-500" />
-          <span className="truncate">{item.location}</span>
-        </p>
-        <h3 className="font-display mt-1 line-clamp-1 text-[15px] font-bold text-slate-900">
+      <div className="px-3.5 py-3">
+        <h3 className="font-display line-clamp-1 text-[15px] font-bold text-slate-900">
           {item.name}
         </h3>
-        <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
-          <span className="flex items-center gap-1 font-bold text-amber-500">
-            <Star className="h-3 w-3 fill-current" />
-            {item.rating}
-          </span>
-          <span className="text-slate-400">({item.reviewsCount} ulasan)</span>
-        </div>
-        <div className="mt-2.5 flex items-end justify-between gap-2 border-t border-slate-100 pt-2.5">
-          <div className="min-w-0">
-            <span className="block text-[10px] text-slate-400">Mulai dari</span>
-            <strong className="font-display block truncate text-sm font-bold text-slate-900">
-              Rp {item.price.toLocaleString('id-ID')}
-              <span className="text-[10px] font-medium text-slate-400">/org</span>
-            </strong>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onBook(item)
-            }}
-            className="app-button app-button-primary shrink-0 px-3 py-1.5 text-[11px]"
-          >
-            Pesan
-          </button>
-        </div>
+        <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+          <MapPin className="h-3 w-3 shrink-0 text-sky-400" />
+          <span className="truncate">{item.location}</span>
+        </p>
       </div>
     </article>
   )
@@ -303,12 +284,14 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     INITIAL_DESTINATIONS[0]
   )
   const [quantity, setQuantity] = useState(2)
-  const [ticketType, setTicketType] = useState('VIP')
-  const [agendaDay, setAgendaDay] = useState('28 Feb')
+  const [ticketType, setTicketType] = useState(
+    INITIAL_DESTINATIONS[0].ticketTiers[0].name
+  )
+  const [selectedEventDay, setSelectedEventDay] = useState(24)
+  const [eventCategory, setEventCategory] = useState('Semua')
   const [saved, setSaved] = useState<string[]>([])
   const [notice, setNotice] = useState('')
   const [overview, setOverview] = useState<Destination | null>(null)
-  const [consumerMenu, setConsumerMenu] = useState(false)
   const [aiInput, setAiInput] = useState('')
   const chatRef = useRef<HTMLDivElement | null>(null)
 
@@ -330,17 +313,19 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
   const nav: [ConsumerPage, string][] = [
     ['Beranda', 'home'],
     ['Jelajahi', 'search'],
-    ['Perjalanan', 'location'],
-    ['Tiket Saya', 'ticket'],
     ['Kalender', 'calendar'],
+    ['AI Guide', 'bot'],
+    ['Karbon', 'leaf'],
+    ['Profil', 'user'],
   ]
 
   const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     home: House,
     search: Search,
-    location: MapPin,
-    ticket: Ticket,
     calendar: Calendar,
+    bot: Bot,
+    leaf: Leaf,
+    user: User,
   }
 
   useEffect(() => {
@@ -355,6 +340,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
   const openBooking = (destination: Destination) => {
     setSelectedDestination(destination)
+    setTicketType(destination.ticketTiers[0]?.name ?? destination.ticketTiers[0]?.id ?? 'Reguler')
     setPage('Pemesanan')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -366,7 +352,8 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
   }
 
   const basePrice =
-    ticketType === 'VIP' ? 250000 : ticketType === 'Weekend' ? 200000 : 150000
+    selectedDestination.ticketTiers.find((tier) => tier.name === ticketType)
+      ?.price ?? selectedDestination.price
   const totalPrice = basePrice * quantity + 5000
 
   // Filter destinations
@@ -398,7 +385,92 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
   const renderHome = () => (
     <>
-      <section className="consumer-hero">
+      {/* Mobile app-style header (matches HomeScreen mockup) */}
+      <section className="app-mobile-head md:hidden">
+        <div className="consumer-container">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-slate-400">
+                Selamat pagi 👋
+              </p>
+              <h1 className="font-display mt-0.5 text-xl font-bold text-slate-900">
+                Halo, Reza!
+              </h1>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() =>
+                  setNotice(
+                    'Pengingat Festival Bau Nyale aktif untuk besok pukul 07.00.'
+                  )
+                }
+                aria-label="Notifikasi"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600"
+              >
+                <Bell className="h-4 w-4" />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-red-500" />
+              </button>
+              <button
+                onClick={() => setPage('Profil')}
+                aria-label="Buka profil"
+                className="relative"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
+                  alt="Reza Pratama"
+                  className="h-10 w-10 rounded-full border-2 border-white object-cover shadow-sm ring-2 ring-sky-500"
+                />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+            <Search className="h-5 w-5 shrink-0 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onFocus={() => setPage('Jelajahi')}
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+              placeholder="Cari destinasi di Lombok..."
+              aria-label="Cari destinasi"
+            />
+            <button
+              onClick={() => setPage('Jelajahi')}
+              aria-label="Filter pencarian"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white shadow-md shadow-sky-500/30"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Promo banner */}
+          <button
+            onClick={() => openBooking(INITIAL_DESTINATIONS[0])}
+            className="promo-banner mt-4"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=1200&h=800&fit=crop&auto=format"
+              alt="Gili Islands Package"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <span className="promo-scrim" />
+            <span className="promo-body">
+              <span className="promo-pill">PROMO SPESIAL</span>
+              <strong className="font-display mt-2 block text-xl font-bold text-white">
+                Gili Islands Package
+              </strong>
+              <span className="mt-1 block text-xs font-medium text-white/85">
+                Hemat hingga 40% · Berlaku s/d 31 Okt
+              </span>
+            </span>
+            <span className="promo-cta">
+              Pesan <ArrowRight className="h-3 w-3" />
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <section className="consumer-hero hidden md:block">
         <img
           src="https://images.unsplash.com/photo-1685975875980-f19fbd4d36a6?w=1600&h=1000&fit=crop&auto=format"
           alt="Pemandangan pantai Lombok"
@@ -460,9 +532,9 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
         </div>
       </section>
 
-      <div className="consumer-container py-12">
-        {/* 3 Quick feature cards */}
-        <section className="-mt-20 relative z-10 mb-14 grid gap-4 md:grid-cols-3">
+      <div className="consumer-container pb-12 pt-6 md:py-12">
+        {/* 3 Quick feature cards (desktop/tablet only) */}
+        <section className="relative z-10 mb-14 hidden gap-4 md:-mt-20 md:grid md:grid-cols-3">
           <button
             onClick={() => openBooking(INITIAL_DESTINATIONS[0])}
             className="feature-card text-left"
@@ -527,16 +599,16 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
           <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <p className="section-eyebrow">Pilihan wisatawan</p>
-              <h2 className="section-title">Destinasi terbaik untukmu</h2>
-              <p className="section-description">
+              <h2 className="section-title">Destinasi Populer</h2>
+              <p className="section-description hidden sm:block">
                 Rekomendasi kurasi berdasarkan lokasi, ulasan, dan musim kunjungan.
               </p>
             </div>
             <button
               onClick={() => setPage('Jelajahi')}
-              className="app-button app-button-secondary"
+              className="app-button app-button-ghost shrink-0 self-start"
             >
-              Lihat semua destinasi
+              Lihat Semua
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -593,20 +665,19 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
                 <div className="carousel-row mt-4">
                   {section.items.map((item) => (
-                    <DestinationCarouselCard
-                      key={item.id}
-                      item={item}
-                      isSaved={saved.includes(item.name)}
-                      onToggleSave={(name) =>
-                        setSaved((curr) =>
-                          curr.includes(name)
-                            ? curr.filter((n) => n !== name)
-                            : [...curr, name]
-                        )
-                      }
-                      onOpen={setOverview}
-                      onBook={openBooking}
-                    />
+                  <DestinationCarouselCard
+                    key={item.id}
+                    item={item}
+                    isSaved={saved.includes(item.name)}
+                    onToggleSave={(name) =>
+                      setSaved((curr) =>
+                        curr.includes(name)
+                          ? curr.filter((n) => n !== name)
+                          : [...curr, name]
+                      )
+                    }
+                    onOpen={setOverview}
+                  />
                   ))}
                 </div>
               </section>
@@ -615,7 +686,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
         </section>
 
         {/* Active Journey & Carbon footprint section */}
-        <section className="mt-16 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+        <section className="mt-16 hidden gap-6 md:grid lg:grid-cols-[1.3fr_1fr]">
           <article className="journey-card">
             <div className="relative z-10 max-w-md">
               <span className="inline-flex rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white">
@@ -862,9 +933,118 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     }
 
     if (page === 'Perjalanan') {
+      const timeline: {
+        day: string
+        time: string
+        title: string
+        note: string
+        state: 'done' | 'current' | 'upcoming'
+      }[] = [
+        { day: 'Hari 1', time: '13:00', title: 'Tiba di Bandara BIZAM', note: 'Transfer ke hotel', state: 'done' },
+        { day: 'Hari 2', time: '08:00', title: 'Gili Trawangan', note: 'Lihat E-Ticket', state: 'done' },
+        { day: 'Hari 3', time: '08:00', title: 'Festival Bau Nyale', note: 'Reminder aktif 🔔', state: 'current' },
+        { day: 'Hari 4', time: '05:00', title: 'Rinjani Trekking', note: 'AI Guide siap', state: 'upcoming' },
+      ]
       return (
-        <section className="consumer-container py-12">
-          <div className="mb-6">
+        <section className="consumer-container py-6 sm:py-12">
+          <div className="mb-6 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="section-title">Perjalanan Saya</h2>
+              <p className="section-description">Trip ke Lombok · 5 Hari 4 Malam</p>
+            </div>
+            <button
+              onClick={() => setNotice('Filter perjalanan: menampilkan trip aktif.')}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500"
+              aria-label="Filter perjalanan"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Trip summary card — teal gradient like mockup */}
+          <article className="trip-card">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-display text-2xl font-bold text-white">
+                  Trip ke Lombok
+                </h3>
+                <p className="mt-1 text-xs font-medium text-white/80">
+                  5 Hari · 4 Malam
+                </p>
+              </div>
+              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+                Aktif
+              </span>
+            </div>
+            <p className="mt-6 text-xs font-semibold text-white/90">
+              3 dari 5 hari selesai
+            </p>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/25">
+              <div className="h-full w-3/5 rounded-full bg-amber-400" />
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-2.5">
+              {[
+                ['8', 'Destinasi'],
+                ['2', 'Event'],
+                ['12.5kg', 'CO₂'],
+              ].map(([value, label]) => (
+                <div key={label} className="trip-stat-tile">
+                  <strong className="font-display block text-lg font-bold text-white">
+                    {value}
+                  </strong>
+                  <span className="mt-0.5 block text-[10px] font-semibold text-white/75">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <h3 className="font-display mt-9 text-lg font-semibold text-slate-900">
+            Timeline Perjalanan
+          </h3>
+          <article className="panel-card mt-4">
+            {timeline.map((item, index) => (
+              <div key={item.title} className="timeline-row">
+                <div className="timeline-rail">
+                  <span
+                    className={
+                      item.state === 'done'
+                        ? 'timeline-dot timeline-dot-done'
+                        : item.state === 'current'
+                          ? 'timeline-dot timeline-dot-current'
+                          : 'timeline-dot'
+                    }
+                  >
+                    {item.state === 'done' && <Check className="h-3 w-3 stroke-3" />}
+                  </span>
+                  {index < timeline.length - 1 && <i />}
+                </div>
+                <div className="min-w-0 flex-1 pb-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      {item.day} - {item.time}
+                    </p>
+                    {item.state === 'current' && (
+                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-600">
+                        Sekarang
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className={`font-display mt-1 text-sm font-bold ${
+                      item.state === 'current' ? 'text-amber-600' : 'text-slate-800'
+                    }`}
+                  >
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-400">{item.note}</p>
+                </div>
+              </div>
+            ))}
+          </article>
+
+          <div className="mt-9 mb-6">
             <p className="section-eyebrow">Riwayat kunjungan</p>
             <h2 className="section-title">Tempat yang sudah saya kunjungi</h2>
             <p className="section-description">
@@ -943,151 +1123,245 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
     if (page === 'Tiket Saya') {
       return (
-        <section className="consumer-container py-12">
-          <div className="mb-6">
-            <p className="section-eyebrow">Digital ticket</p>
-            <h2 className="section-title">Tiket Saya</h2>
-            <p className="section-description">Tiket aktif dan riwayat pemesanan tersedia di sini.</p>
-          </div>
-          <article className="ticket-card mt-8">
+        <section>
+          {/* Success band */}
+          <div className="ticket-success-band">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
+              <Check className="h-5 w-5 stroke-3" />
+            </span>
             <div>
-              <span className="table-status">Aktif</span>
-              <h3 className="font-display mt-4 text-2xl font-semibold text-slate-900">
-                {selectedDestination.name}
-              </h3>
-              <p className="mt-2 text-sm text-slate-500">
-                {selectedDate} · {quantity} tiket {ticketType}
-              </p>
-              <p className="mt-6 font-mono text-sm font-bold tracking-widest text-ocean-600">
-                LMBK-GILI-8A2F
+              <h2 className="font-display text-lg font-bold text-white">
+                Pembayaran Berhasil!
+              </h2>
+              <p className="mt-0.5 text-xs font-medium text-white/85">
+                Order #LMBK-2026-8A2F
               </p>
             </div>
-            <div className="qr-demo">
-              <QrCode className="h-20 w-20 text-ocean-600" />
-            </div>
+          </div>
+
+          <div className="consumer-container -mt-5 pb-12">
+            <article className="ticket-stub">
+              <div className="ticket-stub-hero">
+                <img
+                  src={selectedDestination.image}
+                  alt={selectedDestination.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="font-display text-xl font-bold text-white">
+                    {selectedDestination.name}
+                  </h3>
+                  <p className="mt-0.5 text-xs font-medium text-white/85">
+                    {selectedDestination.location} · {selectedDate}
+                  </p>
+                </div>
+              </div>
+
+              <div className="ticket-stub-body">
+                <span className="ticket-perf" />
+                <div className="qr-demo mx-auto">
+                  <QrCode className="h-20 w-20 text-ocean-600" />
+                </div>
+                <p className="mt-4 text-center font-mono text-xs font-bold tracking-widest text-slate-500">
+                  LMBK-GILI-8A2F
+                </p>
+                <p className="mt-1 text-center text-[11px] text-slate-400">
+                  Tunjukkan QR ini di pintu masuk
+                </p>
+                <span className="ticket-perf" />
+                <div className="mt-5 grid grid-cols-2 gap-y-5">
+                  {[
+                    ['Nama', 'Reza Pratama'],
+                    ['Tanggal', selectedDate],
+                    ['Tipe', ticketType],
+                    ['Jumlah', `${quantity} Tiket`],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {label}
+                      </span>
+                      <strong className="font-display mt-1 block text-sm font-bold text-slate-800">
+                        {value}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex gap-2">
+                  <button
+                    onClick={() => setNotice('E-ticket berhasil disiapkan untuk diunduh.')}
+                    className="app-button app-button-primary flex-1 justify-center py-3"
+                  >
+                    <Download className="h-4 w-4" />
+                    Unduh tiket
+                  </button>
+                  <button
+                    onClick={() =>
+                      setNotice('Tautan e-ticket disalin ke clipboard.')
+                    }
+                    className="app-button app-button-secondary"
+                    aria-label="Bagikan tiket"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </article>
+
             <button
-              onClick={() => setNotice('E-ticket berhasil disiapkan untuk diunduh.')}
-              className="app-button app-button-secondary"
+              onClick={() => setPage('Beranda')}
+              className="app-button app-button-ghost mx-auto mt-6 flex"
             >
-              <Download className="h-4 w-4" />
-              Unduh tiket
+              Kembali ke beranda
             </button>
-          </article>
+          </div>
         </section>
       )
     }
 
     if (page === 'Kalender') {
-      const agenda: Record<string, [string, string][]> = {
-        '28 Feb': [
-          ['15:30', 'Mandalika Beach Pass'],
-          ['19:00', 'Sasak Cultural Night'],
-        ],
-        '1 Mar': [
-          ['09:00', 'Gili Trawangan Day Pass'],
-          ['13:00', 'Gili Snorkeling Experience'],
-        ],
-        '2 Mar': [['08:30', 'Festival Bau Nyale']],
-        '3 Mar': [['09:00', 'Rinjani Panorama Tour']],
-        '4 Mar': [['10:30', 'Workshop Kerajinan Sasak']],
-      }
-      const days = [
-        ['Sab', '28 Feb', 'Hari 1'],
-        ['Min', '1 Mar', 'Hari 2'],
-        ['Sen', '2 Mar', 'Hari 3'],
-        ['Sel', '3 Mar', 'Hari 4'],
-        ['Rab', '4 Mar', 'Hari 5'],
-      ]
+      const eventDays = [5, 10, 15, 16, 22, 24, 28]
+      const weekdayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+      const selectedWeekday = weekdayNames[(selectedEventDay - 1) % 7]
+      const eventChips = ['Semua', ...Array.from(new Set(INITIAL_EVENTS.map((e) => e.category)))]
+      const visibleEvents = INITIAL_EVENTS.filter(
+        (e) => eventCategory === 'Semua' || e.category === eventCategory
+      )
+
       return (
-        <section className="consumer-container py-12">
-          <div className="mb-6">
-            <p className="section-eyebrow">Kalender perjalanan</p>
-            <h2 className="section-title">Aktivitas yang sudah dipesan</h2>
-            <p className="section-description">
-              Lihat tiket dan kegiatan berdasarkan tanggal serta jam pelaksanaannya.
-            </p>
+        <section className="consumer-container py-6 sm:py-12">
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="section-title">Kalender Event</h2>
+              <p className="section-description">Lombok, Februari 2026</p>
+            </div>
+            <button
+              onClick={() => setPage('Jelajahi')}
+              aria-label="Cari event"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
-          <div className="grid gap-6 xl:grid-cols-[.8fr_1.2fr]">
-            <article className="panel-card h-fit">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-ocean-600">28 Feb–4 Mar 2026</p>
-                  <h2 className="font-display mt-1 text-lg font-semibold text-slate-900">
-                    5 tanggal pesanan
-                  </h2>
-                </div>
-                <span className="rounded-full bg-eco-50 px-3 py-1.5 text-[11px] font-bold text-eco-700">
-                  Pesanan aktif
+
+          {/* Month calendar */}
+          <article className="calendar-card">
+            <div className="flex items-center justify-between px-1">
+              <button
+                onClick={() => setNotice('Menampilkan Februari 2026.')}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+                aria-label="Bulan sebelumnya"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <strong className="font-display text-sm font-bold text-slate-800">
+                Februari 2026
+              </strong>
+              <button
+                onClick={() => setNotice('Menampilkan Maret 2026.')}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+                aria-label="Bulan berikutnya"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="calendar-grid mt-4">
+              {['S', 'S', 'R', 'K', 'J', 'S', 'M'].map((d, i) => (
+                <span key={`${d}-${i}`} className="calendar-weekday">
+                  {d}
                 </span>
-              </div>
-              <div className="mt-6 space-y-2">
-                {days.map(([day, date, journeyDay]) => (
+              ))}
+              {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => {
+                const hasEvent = eventDays.includes(day)
+                const isSelected = selectedEventDay === day
+                return (
                   <button
-                    key={date}
-                    onClick={() => setAgendaDay(date)}
-                    className={`calendar-day-row ${
-                      agendaDay === date ? 'calendar-day-row-active' : ''
+                    key={day}
+                    onClick={() => setSelectedEventDay(day)}
+                    className={`calendar-day ${isSelected ? 'calendar-day-selected' : ''} ${
+                      !isSelected && hasEvent ? 'calendar-day-event' : ''
                     }`}
                   >
-                    <span className="calendar-day-number">{date.split(' ')[0]}</span>
-                    <span className="flex-1 text-left">
-                      <strong className="block text-sm">{day}, {date} 2026</strong>
-                      <small className="mt-1 block opacity-65">
-                        {journeyDay} · {agenda[date]?.length || 0} pesanan
-                      </small>
-                    </span>
-                    {date === '28 Feb' ? (
-                      <span className="rounded-full bg-sunset-100 px-2 py-1 text-[9px] font-bold text-sunset-600">
-                        Hari ini
-                      </span>
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-slate-300" />
-                    )}
+                    {day}
+                    {hasEvent && !isSelected && <i />}
                   </button>
-                ))}
-              </div>
-            </article>
+                )
+              })}
+            </div>
+          </article>
 
-            <article className="panel-card">
-              <div className="flex flex-col justify-between gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-center">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-ocean-600">
-                    {days.find((item) => item[1] === agendaDay)?.[2]}
-                  </p>
-                  <h2 className="font-display mt-1 text-xl font-semibold text-slate-900">
-                    {days.find((item) => item[1] === agendaDay)?.[0]}, {agendaDay} 2026
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setNotice(`Pengingat untuk ${agendaDay} berhasil diaktifkan.`)}
-                  className="app-button app-button-secondary"
-                >
-                  <Bell className="h-4 w-4" />
-                  Aktifkan pengingat
-                </button>
-              </div>
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+            {eventChips.map((chip) => (
+              <button
+                key={chip}
+                onClick={() => setEventCategory(chip)}
+                className={`category-chip ${
+                  eventCategory === chip ? 'category-chip-active' : ''
+                }`}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
 
-              <div className="mt-5 space-y-3">
-                {agenda[agendaDay]?.map(([time, title]) => (
-                  <div key={`${time}-${title}`} className="agenda-item">
-                    <div className="booking-time">
-                      <strong>{time}</strong>
-                      <span>WITA</span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-                      <p className="mt-1 text-xs text-slate-400">Tiket sudah dipesan</p>
-                    </div>
-                    <button
-                      onClick={() => setPage('Tiket Saya')}
-                      className="text-xs font-bold text-ocean-600 hover:underline"
+          <p className="mt-5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            {selectedWeekday}, {selectedEventDay} Februari 2026
+          </p>
+
+          <div className="mt-3 space-y-3">
+            {visibleEvents.map((event) => (
+              <article key={event.id} className="event-card">
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  loading="lazy"
+                  className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-display line-clamp-1 text-sm font-bold text-slate-900">
+                      {event.title}
+                    </h3>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        event.price === 'Gratis'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
                     >
-                      Lihat tiket
-                    </button>
+                      {event.price === 'Gratis'
+                        ? 'Gratis'
+                        : `Rp ${Number(event.price).toLocaleString('id-ID')}`}
+                    </span>
                   </div>
-                ))}
+                  <p className="mt-1 text-[11px] font-medium text-slate-500">
+                    {event.time}
+                  </p>
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+                    <MapPin className="h-3 w-3 shrink-0 text-sky-400" />
+                    <span className="truncate">{event.location}</span>
+                  </p>
+                  <button
+                    onClick={() =>
+                      setNotice(`Detail event “${event.title}” — ${event.description}`)
+                    }
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-sky-500"
+                  >
+                    Detail <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </article>
+            ))}
+            {visibleEvents.length === 0 && (
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+                <p className="font-display text-sm font-semibold text-slate-700">
+                  Tidak ada event pada kategori ini
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Coba pilih kategori lainnya.
+                </p>
               </div>
-            </article>
+            )}
           </div>
         </section>
       )
@@ -1120,6 +1394,29 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
           </div>
 
           <div className="ai-guide-shell">
+            <div className="ai-mobile-bar">
+              <span className="chat-avatar chat-avatar-lg">
+                <Bot className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <strong className="block text-sm font-bold text-white">
+                  AI Guide Lombok
+                </strong>
+                <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/75">
+                  <span className={`chat-online-dot ${isBusy ? 'is-busy' : ''}`} />
+                  {isBusy ? 'Sedang berpikir…' : 'Online · Siap membantu'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={resetChat}
+                disabled={isBusy}
+                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white"
+                aria-label="Obrolan baru"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isBusy ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <aside className="ai-guide-aside text-white">
               <span className="ai-kicker">
                 <Sparkles className="h-3.5 w-3.5" /> Asisten Perjalanan
@@ -1276,79 +1573,196 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     }
 
     if (page === 'Pemesanan') {
+      const visitDates: [string, string][] = [
+        ['Sab', '28 Feb 2026'],
+        ['Min', '1 Mar 2026'],
+        ['Sen', '2 Mar 2026'],
+        ['Sel', '3 Mar 2026'],
+        ['Rab', '4 Mar 2026'],
+      ]
       return (
-        <section className="consumer-container py-12">
-          <div className="mb-6">
-            <p className="section-eyebrow">Checkout Pemesanan</p>
-            <h2 className="section-title">Detail Pemesanan Tiket</h2>
-            <p className="section-description">
-              Selesaikan pemesanan tiket resmi {selectedDestination.name}
-            </p>
+        <section className="pb-12">
+          {/* Destination hero — like BookScreen mockup */}
+          <div className="book-hero">
+            <img
+              src={selectedDestination.image}
+              alt={selectedDestination.name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <span className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/20" />
+            <div className="relative flex items-start justify-between gap-3 px-4 pt-4">
+              <button
+                onClick={() => setPage('Jelajahi')}
+                aria-label="Kembali"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 backdrop-blur-md"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() =>
+                  setSaved((curr) =>
+                    curr.includes(selectedDestination.name)
+                      ? curr.filter((n) => n !== selectedDestination.name)
+                      : [...curr, selectedDestination.name]
+                  )
+                }
+                aria-label="Simpan destinasi"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 backdrop-blur-md"
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    saved.includes(selectedDestination.name)
+                      ? 'fill-rose-500 text-rose-500'
+                      : ''
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="absolute bottom-4 left-4 right-4">
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold text-white">
+                  Open Now
+                </span>
+                {selectedDestination.discount && (
+                  <span className="rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-white">
+                    {selectedDestination.discount}
+                  </span>
+                )}
+              </div>
+              <h2 className="font-display mt-2 text-2xl font-bold text-white">
+                {selectedDestination.name}
+              </h2>
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/85">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {selectedDestination.location}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  {selectedDestination.rating} ({(selectedDestination.reviewsCount / 1000).toFixed(1)}k)
+                </span>
+              </p>
+            </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
-            <article className="panel-card space-y-6">
-              <div>
-                <h3 className="panel-title">1. Pilih Tipe Tiket</h3>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  {[
-                    ['Reguler', '150.000', 'Akses umum'],
-                    ['VIP', '250.000', 'Fast boat + guide'],
-                    ['Weekend', '200.000', 'Sabtu & Minggu'],
-                  ].map(([tName, tPrice, tDesc]) => (
-                    <button
-                      key={tName}
-                      type="button"
-                      onClick={() => setTicketType(tName)}
-                      className={`ticket-option ${
-                        ticketType === tName ? 'ticket-option-active' : ''
-                      }`}
-                    >
-                      <strong className="text-sm font-semibold">{tName}</strong>
-                      <span className="font-bold text-ocean-600">Rp {tPrice}</span>
-                      <small className="text-[10px] text-slate-400 mt-1">{tDesc}</small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="panel-title">2. Jumlah Pengunjung</h3>
-                <div className="mt-4 flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="quantity-button"
+          <div className="consumer-container relative z-10 -mt-4">
+            {/* Steps */}
+            <div className="booking-steps">
+              {[
+                { label: 'Tiket', state: 'done' },
+                { label: 'Data', state: 'done' },
+                { label: 'Bayar', state: 'current' },
+              ].map((step, index, arr) => (
+                <React.Fragment key={step.label}>
+                  <span
+                    className={`booking-step ${
+                      step.state === 'current' ? 'booking-step-current' : 'booking-step-done'
+                    }`}
                   >
-                    -
-                  </button>
-                  <strong className="text-lg font-bold">{quantity}</strong>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="quantity-button quantity-button-active"
-                  >
-                    +
-                  </button>
-                  <span className="text-xs text-slate-400">Maksimal 10 tiket per transaksi</span>
-                </div>
-              </div>
+                    <span className="booking-step-dot">
+                      {step.state === 'done' ? (
+                        <Check className="h-3 w-3 stroke-3" />
+                      ) : (
+                        index + 1
+                      )}
+                    </span>
+                    {step.label}
+                  </span>
+                  {index < arr.length - 1 && <span className="booking-step-line" />}
+                </React.Fragment>
+              ))}
+            </div>
 
-              <div>
-                <h3 className="panel-title">3. Tanggal Kunjungan</h3>
-                <button
-                  onClick={() => setDateOpen(true)}
-                  className="mt-3 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700"
-                >
-                  <Calendar className="h-4 w-4 text-ocean-500" />
-                  {selectedDate} (Ubah tanggal)
-                </button>
+            {/* Visit date */}
+            <article className="panel-card mt-4">
+              <h3 className="panel-title">Tanggal Kunjungan</h3>
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                {visitDates.map(([dayName, date]) => (
+                  <button
+                    key={date}
+                    onClick={() => {
+                      setSelectedDate(date)
+                      setNotice(`Tanggal kunjungan diubah ke ${date}`)
+                    }}
+                    className={`visit-date-pill ${
+                      selectedDate === date ? 'visit-date-pill-active' : ''
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold">{dayName}</span>
+                    <strong className="font-display mt-1 block text-lg font-bold">
+                      {date.split(' ')[0]}
+                    </strong>
+                  </button>
+                ))}
               </div>
             </article>
 
-            <article className="panel-card h-fit">
-              <h3 className="panel-title">Ringkasan Biaya</h3>
-              <div className="mt-4 space-y-2 text-xs border-b border-slate-100 pb-4">
+            {/* Ticket type */}
+            <article className="panel-card mt-4">
+              <h3 className="panel-title">Jenis Tiket</h3>
+              <div className="mt-4 space-y-3">
+                {selectedDestination.ticketTiers.map((tier) => (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => setTicketType(tier.name)}
+                    className={`tier-option ${
+                      ticketType === tier.name ? 'tier-option-active' : ''
+                    }`}
+                  >
+                    <span
+                      className={`tier-radio ${
+                        ticketType === tier.name ? 'tier-radio-active' : ''
+                      }`}
+                    />
+                    <span className="min-w-0 flex-1 text-left">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <strong className="font-display text-sm font-bold text-slate-800">
+                          {tier.name}
+                        </strong>
+                        {tier.badge && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase text-amber-700">
+                            {tier.badge}
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                        {tier.description}
+                      </span>
+                    </span>
+                    <strong className="font-display shrink-0 text-sm font-bold text-sky-600">
+                      Rp {(tier.price / 1000).toFixed(0)}K
+                    </strong>
+                  </button>
+                ))}
+              </div>
+            </article>
+
+            {/* Quantity + summary */}
+            <article className="panel-card mt-4">
+              <h3 className="panel-title">Jumlah Pengunjung</h3>
+              <div className="mt-4 flex items-center gap-4">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="quantity-button"
+                >
+                  -
+                </button>
+                <strong className="w-8 text-center text-lg font-bold">{quantity}</strong>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="quantity-button quantity-button-active"
+                >
+                  +
+                </button>
+                <span className="text-xs text-slate-400">Maks. 10 tiket</span>
+              </div>
+
+              <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Tiket {ticketType} x {quantity}</span>
+                  <span>
+                    {ticketType} × {quantity}
+                  </span>
                   <strong>Rp {(basePrice * quantity).toLocaleString('id-ID')}</strong>
                 </div>
                 <div className="flex justify-between text-slate-600">
@@ -1356,22 +1770,242 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                   <strong>Rp 5.000</strong>
                 </div>
               </div>
-              <div className="mt-4 flex justify-between text-sm font-bold text-slate-900">
-                <span>Total Pembayaran:</span>
-                <span className="text-ocean-600 font-display">
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-700">Total Pembayaran</span>
+                <strong className="font-display text-lg font-bold text-sky-600">
                   Rp {totalPrice.toLocaleString('id-ID')}
-                </span>
+                </strong>
               </div>
               <button
                 onClick={() => {
                   setNotice('Pembayaran berhasil! Tiket digital telah diterbitkan.')
                   setPage('Tiket Saya')
                 }}
-                className="app-button app-button-primary mt-6 w-full justify-center py-3"
+                className="app-button app-button-primary mt-5 w-full justify-center py-3.5"
               >
                 Bayar Sekarang
               </button>
             </article>
+          </div>
+        </section>
+      )
+    }
+
+    if (page === 'Karbon') {
+      return (
+        <section className="pb-12">
+          <div className="carbon-head">
+            <div className="consumer-container flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                  <Leaf className="h-5 w-5" />
+                </span>
+                <div>
+                  <h2 className="font-display text-lg font-bold leading-tight text-white">
+                    Jejak Karbon Anda
+                  </h2>
+                  <p className="mt-0.5 text-[11px] font-medium text-white/80">
+                    Berkontribusi untuk Lombok Hijau
+                  </p>
+                </div>
+              </div>
+              <span className="rounded-full bg-white/20 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-md">
+                🌱 Eco-Warrior Lv.2
+              </span>
+            </div>
+          </div>
+
+          <div className="consumer-container -mt-6">
+            <article className="panel-card">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Total emisi perjalanan
+              </p>
+              <p className="mt-2 flex items-end gap-1.5">
+                <strong className="font-display text-4xl font-bold text-slate-900">
+                  12.5
+                </strong>
+                <span className="mb-1 text-sm font-semibold text-slate-500">kg CO₂</span>
+              </p>
+              <p className="mt-1.5 text-xs font-semibold text-emerald-600">
+                ↓ 15% lebih rendah dari trip sebelumnya
+              </p>
+
+              <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
+                <div
+                  className="carbon-donut"
+                  style={{
+                    background:
+                      'conic-gradient(#0ea5e9 0 60%, #f59e0b 60% 84.8%, #14b8a6 84.8% 100%)',
+                  }}
+                >
+                  <span className="carbon-donut-hole" />
+                </div>
+                <ul className="w-full space-y-3">
+                  {[
+                    ['#0ea5e9', 'Transportasi', '7.5 kg'],
+                    ['#f59e0b', 'Akomodasi', '3.1 kg'],
+                    ['#14b8a6', 'Aktivitas', '1.9 kg'],
+                  ].map(([color, label, value]) => (
+                    <li key={label} className="flex items-center gap-2.5 text-xs">
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ background: color }}
+                      />
+                      <span className="flex-1 text-slate-600">{label}</span>
+                      <strong className="font-display font-bold text-slate-800">
+                        {value}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+
+            <h3 className="font-display mt-8 text-lg font-semibold text-slate-900">
+              Rekomendasi Offset
+            </h3>
+            <div className="mt-4 space-y-3">
+              {CARBON_PROJECTS.map((project) => (
+                <article key={project.id} className="offset-card">
+                  <span className="offset-emoji">{project.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-display text-sm font-bold text-slate-800">
+                      {project.title}
+                    </h4>
+                    <p className="mt-0.5 text-[11px] text-slate-400">
+                      Setara {project.co2OffsetKg} kg CO₂
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setNotice(`Offset “${project.title}” ditambahkan ke keranjang.`)
+                    }
+                    className="shrink-0 text-sm font-bold text-emerald-600"
+                  >
+                    Rp {project.price.toLocaleString('id-ID')}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    if (page === 'Profil') {
+      const menu: {
+        icon: React.ReactNode
+        title: string
+        subtitle: string
+        action: () => void
+      }[] = [
+        {
+          icon: <Pencil className="h-4 w-4 text-rose-500" />,
+          title: 'Edit Profil',
+          subtitle: 'Ubah foto & informasi',
+          action: () => setNotice('Pengaturan profil demo — perubahan tidak disimpan.'),
+        },
+        {
+          icon: <CreditCard className="h-4 w-4 text-sky-500" />,
+          title: 'Metode Pembayaran',
+          subtitle: 'GoPay, BCA, QRIS',
+          action: () => setNotice('Metode pembayaran demo: QRIS, GoPay, dan BCA aktif.'),
+        },
+        {
+          icon: <Ticket className="h-4 w-4 text-slate-500" />,
+          title: 'Riwayat Transaksi',
+          subtitle: '12 transaksi',
+          action: () => setPage('Tiket Saya'),
+        },
+        {
+          icon: <Leaf className="h-4 w-4 text-emerald-500" />,
+          title: 'Kredit Karbon',
+          subtitle: '45 kg CO₂ teroffset',
+          action: () => setPage('Karbon'),
+        },
+        {
+          icon: <Calendar className="h-4 w-4 text-indigo-500" />,
+          title: 'Kalender Saya',
+          subtitle: '3 event terjadwal',
+          action: () => setPage('Kalender'),
+        },
+        {
+          icon: <Compass className="h-4 w-4 text-ocean-500" />,
+          title: 'Perjalanan Saya',
+          subtitle: 'Trip aktif · 5 hari',
+          action: () => setPage('Perjalanan'),
+        },
+      ]
+      return (
+        <section className="pb-12">
+          <div className="profile-head">
+            <div className="relative mx-auto w-fit">
+              <img
+                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop&auto=format"
+                alt="Reza Pratama"
+                className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-lg"
+              />
+              <span className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500" />
+            </div>
+            <h2 className="font-display mt-3 text-xl font-bold text-white">
+              Reza Pratama
+            </h2>
+            <p className="mt-0.5 text-xs text-white/80">reza.pratama@email.com</p>
+            <span className="mt-3 inline-flex rounded-full bg-white/25 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
+              🌱 Eco-Warrior Level 2
+            </span>
+          </div>
+
+          <div className="consumer-container -mt-7">
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                ['12', 'Total Trip'],
+                ['45 kg', 'Kredit Karbon'],
+                ['1.250', 'Poin'],
+              ].map(([value, label]) => (
+                <div key={label} className="profile-stat-tile">
+                  <strong className="font-display block text-lg font-bold text-slate-900">
+                    {value}
+                  </strong>
+                  <span className="mt-0.5 block text-[10px] font-medium text-slate-400">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <article className="panel-card mt-5">
+              <div className="divide-y divide-slate-100">
+                {menu.map((item) => (
+                  <button
+                    key={item.title}
+                    onClick={item.action}
+                    className="profile-menu-item"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50">
+                      {item.icon}
+                    </span>
+                    <span className="min-w-0 flex-1 text-left">
+                      <strong className="block text-sm font-bold text-slate-800">
+                        {item.title}
+                      </strong>
+                      <span className="mt-0.5 block text-[11px] text-slate-400">
+                        {item.subtitle}
+                      </span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+                  </button>
+                ))}
+              </div>
+            </article>
+
+            <button
+              onClick={onLogout}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 py-3.5 text-sm font-bold text-rose-600"
+            >
+              <LogOut className="h-4 w-4" />
+              Keluar Akun
+            </button>
           </div>
         </section>
       )
@@ -1382,17 +2016,10 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Consumer Header */}
-      <header className="consumer-header">
+      {/* Consumer Header (desktop/tablet only — mobile uses bottom nav + app-style heads) */}
+      <header className="consumer-header hidden md:block">
         <div className="consumer-container flex h-16 items-center justify-between gap-3 sm:h-20 sm:gap-5">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setConsumerMenu(true)}
-              className="consumer-menu-trigger md:hidden"
-              aria-label="Buka menu utama"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
             <button onClick={() => setPage('Beranda')} className="flex items-center gap-2.5">
               <div className="logo-mark">
                 <img src="/logo-silaq-icon.png" alt="" />
@@ -1417,27 +2044,13 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                   page === label ? 'consumer-nav-active' : ''
                 }`}
               >
-                {label}
+                {navLabel(label)}
               </button>
             ))}
           </nav>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() =>
-                setNotice(
-                  'Pengingat Festival Bau Nyale aktif untuk besok pukul 07.00.'
-                )
-              }
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />
-            </button>
-
-            {/* User Profile & Logout Button (NO ROLE SWITCHER!) */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-left">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-left">
                 <img
                   src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
                   alt="Reza Pratama"
@@ -1460,7 +2073,6 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               </button>
             </div>
           </div>
-        </div>
       </header>
 
       {/* Notice Pill */}
@@ -1469,60 +2081,6 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
           <span>{notice}</span>
           <button onClick={() => setNotice('')}>Tutup</button>
         </div>
-      )}
-
-      {/* Mobile Drawer */}
-      {consumerMenu && (
-        <>
-          <button
-            className="consumer-drawer-overlay md:hidden"
-            onClick={() => setConsumerMenu(false)}
-            aria-label="Tutup menu utama"
-          />
-          <aside className="consumer-drawer md:hidden">
-            <div className="flex items-center justify-between border-b border-slate-100 p-5">
-              <div className="flex items-center gap-2.5">
-                <div className="logo-mark">
-                  <img src="/logo-silaq-icon.png" alt="" />
-                </div>
-                <span className="font-display text-base font-bold text-slate-900">
-                  SILAQ
-                </span>
-              </div>
-              <button
-                onClick={() => setConsumerMenu(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-4 space-y-1">
-              {nav.map(([label]) => (
-                <button
-                  key={label}
-                  onClick={() => {
-                    setPage(label)
-                    setConsumerMenu(false)
-                  }}
-                  className={`consumer-drawer-item ${
-                    page === label ? 'consumer-drawer-item-active' : ''
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-              <div className="pt-4 border-t border-slate-100">
-                <button
-                  onClick={onLogout}
-                  className="consumer-drawer-logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Keluar Akun
-                </button>
-              </div>
-            </div>
-          </aside>
-        </>
       )}
 
       {/* Main Content Area */}
@@ -1543,7 +2101,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               aria-current={isActive ? 'page' : undefined}
             >
               {IconComponent && <IconComponent className="h-[18px] w-[18px]" />}
-              <span>{label === 'Tiket Saya' ? 'Tiket' : label}</span>
+              <span>{navLabel(label)}</span>
             </button>
           )
         })}
