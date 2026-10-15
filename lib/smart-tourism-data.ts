@@ -291,6 +291,172 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     ticketTiers: [
       { id: 'pupus-reg', name: 'Tiket Masuk Air Terjun', price: 25000, description: 'Akses jalur trekking & kolam Tiu Pupus', quotaPerDay: 250, quotaRemaining: 120 }
     ]
+  },
+  {
+    id: 'dest-selongbelanak',
+    name: 'Pantai Selong Belanak',
+    category: 'Pantai',
+    location: 'Pujut, Lombok Tengah',
+    region: 'Lombok Tengah',
+    address: 'Jl. Selong Belanak, Desa Selong Belanak, Kec. Pujut, Kab. Lombok Tengah, NTB',
+    mapsUrl: maps('Pantai Selong Belanak, Lombok Tengah, Nusa Tenggara Barat'),
+    price: 10000,
+    rating: 4.8,
+    reviewsCount: 860,
+    image: 'https://images.unsplash.com/photo-1483168527879-c66136b56105?w=900&h=700&fit=crop&auto=format',
+    description: 'Teluk panjang berair tenang dengan pasir putih halus, surga belajar berselancar ramah pemula dan padang sabana hijau di belakang pantai.',
+    highlights: ['Ombak kecil untuk belajar surfing', 'Warung kelapa muda pinggir pantai', 'Padang sabana untuk foto', 'Kuda lokal disewa di tepi pantai'],
+    ticketTiers: [
+      { id: 'selong-reg', name: 'Tiket Masuk Pantai', price: 10000, description: 'Akses pantai & area parkir', quotaPerDay: 800, quotaRemaining: 412 },
+      { id: 'selong-surf', name: 'Surf Lesson Pass', price: 150000, description: 'Papan selancar + pelatih 90 menit', quotaPerDay: 60, quotaRemaining: 18, badge: 'Favorit Pemula' }
+    ]
+  },
+  {
+    id: 'dest-mawun',
+    name: 'Pantai Mawun',
+    category: 'Pantai',
+    location: 'Pujut, Lombok Tengah',
+    region: 'Lombok Tengah',
+    address: 'Dsn. Mawun, Desa Selong Belanak, Kec. Pujut, Kab. Lombok Tengah, NTB',
+    mapsUrl: maps('Pantai Mawun, Lombok Tengah, Nusa Tenggara Barat'),
+    price: 5000,
+    rating: 4.7,
+    reviewsCount: 420,
+    image: 'https://images.unsplash.com/photo-1468413253725-0d5181091126?w=900&h=700&fit=crop&auto=format',
+    description: 'Pantai tersembunyi berbentuk tapal kuda dengan air biru tenang dan bukit hijau melingkar — jarang ramai, favorit untuk piknik sore.',
+    highlights: ['Air tenang aman berenang', 'Jarang pengunjung', 'Spot piknik tepi bukit', 'Sunset dari atas bukit Mawun'],
+    ticketTiers: [
+      { id: 'mawun-reg', name: 'Tiket Masuk Pantai', price: 5000, description: 'Akses pantai sepanjang hari', quotaPerDay: 300, quotaRemaining: 145 }
+    ]
+  },
+  {
+    id: 'dest-benangkelambu',
+    name: 'Air Terjun Benang Kelambu',
+    category: 'Air Terjun',
+    location: 'Bayan, Lombok Utara',
+    region: 'Lombok Utara',
+    address: 'Dsn. Pemuatan, Desa Senaru, Kec. Bayan, Kab. Lombok Utara, NTB',
+    mapsUrl: maps('Air Terjun Benang Kelambu, Bayan, Lombok Utara, Nusa Tenggara Barat'),
+    price: 20000,
+    rating: 4.7,
+    reviewsCount: 340,
+    image: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=900&h=700&fit=crop&auto=format',
+    description: 'Air terjun berlapis yang jatuh menyerupai tabir kelambu di tengah hutan Genit Hill, dikelilingi tanaman rambat hijau yang meneduhkan.',
+    highlights: ['Tirai air berlapis unik', 'Trekking hutan 30 menit', 'Kolam alami dangkal', 'Kombinasi trip Senaru'],
+    ticketTiers: [
+      { id: 'kelambu-reg', name: 'Tiket Masuk Air Terjun', price: 20000, description: 'Akses jalur Genit Hill & kolam', quotaPerDay: 250, quotaRemaining: 98 }
+    ]
+  },
+  {
+    id: 'dest-bukitselong',
+    name: 'Bukit Selong Sembalun',
+    category: 'Gunung',
+    location: 'Sembalun, Lombok Timur',
+    region: 'Lombok Timur',
+    address: 'Dsn. Anak Sembalun, Desa Sembalun Lawang, Kec. Sembalun, Kab. Lombok Timur, NTB',
+    mapsUrl: maps('Bukit Selong, Sembalun, Lombok Timur, Nusa Tenggara Barat'),
+    price: 15000,
+    rating: 4.9,
+    reviewsCount: 720,
+    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=900&h=700&fit=crop&auto=format',
+    description: 'Bukit panorama Sembalun dengan latar Gunung Rinjani, hamparan sawah berundak, dan pemandangan tiga gili dari kejauhan saat langit cerah.',
+    highlights: ['Trekking ringan 20 menit', 'Panorama Rinjani 360°', 'Golden hour terbaik', 'Warung kopi di puncak'],
+    ticketTiers: [
+      { id: 'selonghill-reg', name: 'Tiket Masuk Bukit', price: 15000, description: 'Akses jalur setapak & gardu pandang', quotaPerDay: 400, quotaRemaining: 187 }
+    ]
+  },
+  {
+    id: 'dest-purameru',
+    name: 'Pura Meru Mataram',
+    category: 'Budaya',
+    location: 'Cakranegara, Kota Mataram',
+    region: 'Kota Mataram',
+    address: 'Jl. Meru No.18, Cakranegara, Kota Mataram, NTB',
+    mapsUrl: maps('Pura Meru, Cakranegara, Kota Mataram, Nusa Tenggara Barat'),
+    price: 10000,
+    rating: 4.6,
+    reviewsCount: 290,
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&h=700&fit=crop&auto=format',
+    description: 'Pura Hindu terbesar di Lombok dengan tiga meru tinggi melambangkan Trimurti, halaman luas, dan kolam suci peninggalan kerajaan Mataram.',
+    highlights: ['Tiga menara meru tertinggi', 'Sejarah kerajaan Mataram', 'Kolam suci & bale pengungsian', 'Gerbung khas Bali-Lombok'],
+    ticketTiers: [
+      { id: 'meru-reg', name: 'Tiket Masuk Pura', price: 10000, description: 'Akses halaman pura', quotaPerDay: 350, quotaRemaining: 210 },
+      { id: 'meru-tour', name: 'Tur Sejarah Berpemandu', price: 75000, description: 'Pemandu sejarah 60 menit + dokumentasi', quotaPerDay: 40, quotaRemaining: 12, badge: 'Edukasi' }
+    ]
+  },
+  {
+    id: 'dest-tamannarmada',
+    name: 'Taman Narmada',
+    category: 'Budaya',
+    location: 'Lingsar, Lombok Barat',
+    region: 'Lombok Barat',
+    address: 'Jl. Raya Narmada, Lingsar, Kab. Lombok Barat, NTB',
+    mapsUrl: maps('Taman Narmada, Lingsar, Lombok Barat, Nusa Tenggara Barat'),
+    price: 20000,
+    rating: 4.7,
+    reviewsCount: 480,
+    image: 'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&h=700&fit=crop&auto=format',
+    description: 'Taman air kerajaan tahun 1720 dengan replika Gunung Rinjani, kolam teratai, dan pura kecil — tempat upacara Kalareta umat Hindu Lombok.',
+    highlights: ['Replika Segara Anak', 'Kolam teratai & ikan koi', 'Pura Lingsar di dekatnya', 'Souvenir tenun khas Narmada'],
+    ticketTiers: [
+      { id: 'narmada-reg', name: 'Tiket Masuk Taman', price: 20000, description: 'Akses taman, kolam & pura', quotaPerDay: 500, quotaRemaining: 265 }
+    ]
+  },
+  {
+    id: 'dest-gilisudak',
+    name: 'Gili Sudak & Gili Tangkong',
+    category: 'Gili',
+    location: 'Sekotong, Lombok Barat',
+    region: 'Lombok Barat',
+    address: 'Dsn. Gili Sudak, Desa Sekotong Barat, Kec. Sekotong, Kab. Lombok Barat, NTB',
+    mapsUrl: maps('Gili Sudak, Sekotong, Lombok Barat, Nusa Tenggara Barat'),
+    price: 125000,
+    rating: 4.7,
+    reviewsCount: 380,
+    image: 'https://images.unsplash.com/photo-1520454974749-611b7248ffdb?w=900&h=700&fit=crop&auto=format',
+    description: 'Duo gili kecil di gugusan Sekotong dengan restorasi terumbu karang aktif, pantai landai, dan warung ikan bakar nelayan di tepi dermaga.',
+    highlights: ['Konservasi karang aktif', 'Ikan bakar di warung nelayan', 'Snorkeling karang dangkal', 'Sunset bar pasir putih'],
+    ticketTiers: [
+      { id: 'sudak-reg', name: 'Paket Trip Sudak', price: 125000, description: 'Perahu PP + tiket masuk pulau', quotaPerDay: 180, quotaRemaining: 64 },
+      { id: 'sudak-snorkel', name: 'Sudak + Tangkong Snorkel', price: 225000, description: 'Dua gili + alat snorkel + pemandu', quotaPerDay: 90, quotaRemaining: 27, badge: 'Paket Hemat' }
+    ]
+  },
+  {
+    id: 'dest-gilikondo',
+    name: 'Gili Kondo',
+    category: 'Gili',
+    location: 'Sambelia, Lombok Timur',
+    region: 'Lombok Timur',
+    address: 'Dsn. Batu Tepong, Desa Sambelia, Kec. Sambelia, Kab. Lombok Timur, NTB',
+    mapsUrl: maps('Gili Kondo, Sambelia, Lombok Timur, Nusa Tenggara Barat'),
+    price: 150000,
+    rating: 4.8,
+    reviewsCount: 260,
+    image: 'https://images.unsplash.com/photo-1533669955142-6a73332af4db?w=900&h=700&fit=crop&auto=format',
+    description: 'Gili timur yang masih perawan dengan pasir memanjang seperti bar, air sebening kaca, dan padang lamun tempat penyu makan siang.',
+    highlights: ['Bar pasir saat surut', 'Spot penyu & lamun', 'Perjalanan 45 menit dari Sambelia', 'Snorkeling 3 titik'],
+    ticketTiers: [
+      { id: 'kondo-reg', name: 'Paket Trip Kondo', price: 150000, description: 'Perahu PP + tiket masuk pulau', quotaPerDay: 120, quotaRemaining: 35 },
+      { id: 'kondo-full', name: 'Full Day Kondo + Meno', price: 275000, description: 'Dua destinasi + makan siang + gear snorkel', quotaPerDay: 40, quotaRemaining: 9, badge: 'Eksklusif' }
+    ]
+  },
+  {
+    id: 'dest-pantaisire',
+    name: 'Pantai Sire',
+    category: 'Pantai',
+    location: 'Tanjalaya, Lombok Utara',
+    region: 'Lombok Utara',
+    address: 'Jl. Pantai Sire, Desa Tanjalaya, Kec. Tanjung, Kab. Lombok Utara, NTB',
+    mapsUrl: maps('Pantai Sire, Tanjung, Lombok Utara, Nusa Tenggara Barat'),
+    price: 10000,
+    rating: 4.6,
+    reviewsCount: 310,
+    image: 'https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=900&h=700&fit=crop&auto=format',
+    description: 'Pantai berpasir putih menghadap tiga gili dengan resort tepi pantai, hutan bakau kecil, dan air dangkal yang tenang untuk keluarga.',
+    highlights: ['Menghadap Gili Trawangan', 'Tenang untuk anak', 'Hutan bakau & area konservasi', 'Dekat Gili Meno boat transfer'],
+    ticketTiers: [
+      { id: 'sire-reg', name: 'Tiket Masuk Pantai', price: 10000, description: 'Akses pantai & area parkir', quotaPerDay: 450, quotaRemaining: 230 }
+    ]
   }
 ]
 

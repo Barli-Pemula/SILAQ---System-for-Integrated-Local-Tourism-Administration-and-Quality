@@ -164,9 +164,9 @@ button { cursor: pointer; }
 .destination-card { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 1.5rem; background: white; box-shadow: 0 8px 30px rgba(15,23,42,.05); }
 .carousel-row { display: flex; gap: .85rem; overflow-x: auto; padding-bottom: .5rem; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
 .carousel-row::-webkit-scrollbar { display: none; }
-.carousel-card { flex: none; width: min(72vw, 15.5rem); scroll-snap-align: start; border-radius: 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
+.carousel-card { flex: none; width: min(82vw, 18rem); scroll-snap-align: start; border-radius: 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
 .carousel-card:hover { transform: translateY(-3px); box-shadow: 0 14px 38px rgba(15,23,42,.1); }
-@media (min-width: 640px) { .carousel-card { width: 16.5rem; } }
+@media (min-width: 640px) { .carousel-card { width: 19rem; } }
 .journey-card { position: relative; min-height: 23rem; overflow: hidden; border-radius: 1.5rem; padding: 2rem; background: linear-gradient(110deg, rgba(3,105,161,.97), rgba(13,148,136,.78)), url('https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=1000&fit=crop') center/cover; }
 .ai-fab { position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 35; display: flex; min-height: 3.4rem; align-items: center; gap: .6rem; border-radius: 999px; background: linear-gradient(135deg, #0ea5e9, #14b8a6); padding: 0 1.1rem; color: white; font-size: .75rem; font-weight: 700; box-shadow: 0 14px 35px rgba(14,165,233,.35); }
 .consumer-mobile-nav { position: fixed; inset: auto 0 0; z-index: 34; display: none; height: 4.5rem; grid-template-columns: repeat(6,1fr); border-top: 1px solid #e2e8f0; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }

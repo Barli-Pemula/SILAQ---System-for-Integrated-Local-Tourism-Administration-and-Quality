@@ -84,21 +84,18 @@ function DestinationCarouselCard({
   isSaved,
   onToggleSave,
   onOpen,
+  onBook,
 }: {
   item: Destination
   isSaved: boolean
   onToggleSave: (name: string) => void
   onOpen: (item: Destination) => void
+  onBook: (item: Destination) => void
 }) {
-  const badge = item.isPopular
-    ? { text: 'Terpopuler', className: 'card-badge-promo' }
-    : item.rating >= 4.8
-      ? { text: 'Trending', className: 'card-badge-trend' }
-      : null
   const open = () => onOpen(item)
   return (
     <article
-      className="destination-card carousel-card cursor-pointer"
+      className="destination-card carousel-card flex cursor-pointer flex-col justify-between"
       role="button"
       tabIndex={0}
       onClick={open}
@@ -109,42 +106,81 @@ function DestinationCarouselCard({
         }
       }}
     >
-      <div className="relative h-36 overflow-hidden bg-slate-100 sm:h-40">
-        <img
-          src={item.image}
-          alt={item.name}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-        />
-        {badge && (
-          <span
-            className={`absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold text-white ${badge.className}`}
-          >
-            {badge.text}
-          </span>
-        )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleSave(item.name)
-          }}
-          aria-label="Simpan destinasi"
-          className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm backdrop-blur-md hover:text-rose-500"
-        >
-          <Heart
-            className={`h-4 w-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`}
+      <div>
+        <div className="relative h-40 overflow-hidden bg-slate-100 sm:h-44">
+          <img
+            src={item.image}
+            alt={item.name}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
           />
-        </button>
+          <span className="absolute left-3 top-3 rounded-full bg-slate-950/70 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
+            {item.category}
+          </span>
+          {item.discount && (
+            <span className="absolute bottom-3 left-3 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
+              {item.discount}
+            </span>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleSave(item.name)
+            }}
+            aria-label="Simpan destinasi"
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-sm backdrop-blur-md hover:text-rose-500"
+          >
+            <Heart
+              className={`h-4 w-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`}
+            />
+          </button>
+        </div>
+        <div className="p-4">
+          <p className="flex items-center gap-1 text-xs text-slate-400">
+            <MapPin className="h-3 w-3 shrink-0 text-ocean-500" />
+            <span className="truncate">{item.location}</span>
+          </p>
+          <h3 className="font-display mt-1 text-sm font-bold text-slate-900 sm:text-base">
+            {item.name}
+          </h3>
+          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">
+            {item.description}
+          </p>
+          <div className="mt-2.5 flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1 font-bold text-amber-500">
+                <Star className="h-3 w-3 fill-current" />
+                {item.rating}
+              </span>
+              <span className="text-slate-400">({item.reviewsCount})</span>
+            </span>
+            <span className="flex items-center gap-1 font-bold text-ocean-600">
+              Lihat overview
+              <ChevronRight className="h-3 w-3" />
+            </span>
+          </div>
+        </div>
       </div>
-      <div className="px-3.5 py-3">
-        <h3 className="font-display line-clamp-1 text-[15px] font-bold text-slate-900">
-          {item.name}
-        </h3>
-        <p className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-          <MapPin className="h-3 w-3 shrink-0 text-sky-400" />
-          <span className="truncate">{item.location}</span>
-        </p>
+
+      <div
+        data-ui
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-end justify-between gap-2 border-t border-slate-100 p-4 pt-3"
+      >
+        <div className="min-w-0">
+          <span className="block text-[10px] text-slate-400">Mulai dari</span>
+          <strong className="font-display block truncate text-sm font-bold text-slate-900 sm:text-base">
+            Rp {item.price.toLocaleString('id-ID')}
+            <span className="text-[10px] font-medium text-slate-400">/org</span>
+          </strong>
+        </div>
+        <button
+          onClick={() => onBook(item)}
+          className="app-button app-button-primary shrink-0 px-3 py-1.5 text-[11px]"
+        >
+          Pesan tiket
+        </button>
       </div>
     </article>
   )
@@ -677,6 +713,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                       )
                     }
                     onOpen={setOverview}
+                    onBook={openBooking}
                   />
                   ))}
                 </div>
