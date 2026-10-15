@@ -34,6 +34,17 @@ const roleOptions: {
   },
 ]
 
+function GoogleIcon() {
+  return (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  )
+}
+
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [role, setRole] = useState<Role>('consumer')
   const [email, setEmail] = useState('reza@silaq.id')
@@ -59,7 +70,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <main className="login-shell">
-      {/* Left visual story */}
+      {/* Left visual story (desktop only) */}
       <section className="login-story">
         <img
           src="https://images.unsplash.com/photo-1685975875980-f19fbd4d36a6?w=1600&h=1000&fit=crop&auto=format"
@@ -68,7 +79,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/25 via-slate-950/25 to-slate-950/90" />
         <div className="relative z-10 flex h-full flex-col justify-between p-8 lg:p-12">
-          {/* Logo Inverse */}
           <div className="flex items-center gap-3">
             <div className="logo-mark logo-mark-inverse">
               <img src="/logo-silaq-icon.png" alt="" />
@@ -111,34 +121,55 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       </section>
 
       {/* Right Login Form */}
-      <section className="flex min-h-screen items-center justify-center bg-white px-5 py-10 sm:px-10">
-        <div className="w-full max-w-lg">
-          <div className="mb-8 lg:hidden flex items-center gap-3">
+      <section className="login-panel">
+        <div className="w-full max-w-md px-5 py-6 sm:px-8 sm:py-10">
+          {/* Brand — compact, mobile/tablet only */}
+          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
             <div className="logo-mark">
               <img src="/logo-silaq-icon.png" alt="" />
             </div>
             <div>
-              <span className="font-display text-xl font-bold tracking-tight text-slate-900 block">
+              <span className="font-display text-lg font-bold tracking-tight text-slate-900 block">
                 SILAQ
+              </span>
+              <span className="block text-[9px] font-semibold text-slate-400">
+                Smart Tourism Lombok
               </span>
             </div>
           </div>
 
-          <div className="mb-8">
-            <p className="mb-2 text-sm font-semibold text-ocean-600">
+          <div className="mb-5 sm:mb-8">
+            <p className="mb-1.5 text-xs font-semibold text-ocean-600 sm:mb-2 sm:text-sm">
               Selamat datang kembali
             </p>
-            <h2 className="font-display text-3xl font-semibold text-slate-950">
+            <h2 className="font-display text-2xl font-semibold text-slate-950 sm:text-3xl">
               Masuk ke SILAQ
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              System for Integrated Local Tourism Administration and Quality.
+            <p className="mt-2 hidden text-sm leading-6 text-slate-500 sm:block">
               Pilih tipe akun untuk melihat pengalaman dashboard yang sesuai.
             </p>
           </div>
 
-          {/* 3 Role Selection Cards */}
-          <div className="mb-7 grid gap-3 sm:grid-cols-3">
+          {/* Google sign-in (demo placeholder) */}
+          <button
+            type="button"
+            onClick={() => onLogin(role)}
+            className="google-button"
+          >
+            <GoogleIcon />
+            <span>Lanjutkan dengan Google</span>
+          </button>
+
+          <div className="my-4 flex items-center gap-3 sm:my-6">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              atau masuk dengan email
+            </span>
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          {/* Role Selection — compact pills on mobile, cards on desktop */}
+          <div className="role-grid mb-5 sm:mb-7">
             {roleOptions.map((option) => (
               <button
                 key={option.id}
@@ -149,21 +180,27 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 }`}
               >
                 <span className="role-icon">
-                  {option.icon === 'user' && <User className="h-5 w-5" />}
-                  {option.icon === 'dashboard' && <LayoutDashboard className="h-5 w-5" />}
-                  {option.icon === 'users' && <Users className="h-5 w-5" />}
+                  {option.icon === 'user' && <User className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {option.icon === 'dashboard' && (
+                    <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                  {option.icon === 'users' && (
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
                 </span>
-                <span className="font-display text-sm font-semibold text-slate-800">
-                  {option.label}
-                </span>
-                <span className="mt-1 text-[11px] leading-4 text-slate-500">
-                  {option.description}
+                <span className="min-w-0">
+                  <span className="font-display block text-[11px] font-semibold leading-tight text-slate-800 sm:text-sm">
+                    {option.label}
+                  </span>
+                  <span className="role-desc mt-1 hidden text-[11px] leading-4 text-slate-500 sm:block">
+                    {option.description}
+                  </span>
                 </span>
               </button>
             ))}
           </div>
 
-          <form onSubmit={submit} className="space-y-5">
+          <form onSubmit={submit} className="space-y-3.5 sm:space-y-5">
             <label className="block">
               <span className="field-label">Alamat email</span>
               <span className="input-wrap">
@@ -213,18 +250,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </span>
             </label>
 
-            <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
-              <input
-                type="checkbox"
-                defaultChecked
-                className="h-4 w-4 accent-sky-500"
-              />{' '}
-              Ingat saya di perangkat ini
-            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex cursor-pointer items-center gap-2.5 text-xs text-slate-600 sm:text-sm">
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="h-4 w-4 accent-sky-500"
+                />
+                Ingat saya
+              </label>
+            </div>
 
             <button
               type="submit"
-              className="app-button app-button-primary w-full justify-center py-3.5"
+              className="app-button app-button-primary w-full justify-center py-3 text-sm sm:py-3.5"
             >
               <span>Masuk sebagai {roleOptions.find((item) => item.id === role)?.label}</span>
               <ArrowRight className="h-4 w-4" />
@@ -237,15 +276,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
 
-          <div className="mt-7 flex items-center gap-3">
-            <span className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs text-slate-400">Akses demo aman</span>
-            <span className="h-px flex-1 bg-slate-200" />
-          </div>
-
-          <p className="mt-5 text-center text-xs leading-5 text-slate-400">
-            Prototype ini menggunakan akun demo. Pilih peran di atas lalu klik masuk
-            untuk langsung menuju dashboard khusus peran tersebut.
+          <p className="mt-6 hidden text-center text-xs leading-5 text-slate-400 sm:block">
+            Prototype ini menggunakan akun demo. Pilih peran di atas lalu klik
+            masuk untuk langsung menuju dashboard khusus peran tersebut.
           </p>
         </div>
       </section>

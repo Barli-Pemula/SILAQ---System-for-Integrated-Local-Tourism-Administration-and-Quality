@@ -97,7 +97,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 40000,
     rating: 4.8,
     reviewsCount: 650,
-    image: 'https://images.unsplash.com/photo-1685975875980-f19fbd4d36a6?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&h=700&fit=crop&auto=format',
     description: 'Air terjun ganda nan sejuk di kaki Gunung Rinjani dengan kolam alami yang konon membuat awet muda menurut cerita rakyat Sasak.',
     highlights: ['Trekking hutan tropis rimbun', 'Kolam kesegaran alami', 'Pemandangan tebing vulkanik', 'Spot foto pelangi air terjun'],
     ticketTiers: [
@@ -116,7 +116,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 100000,
     rating: 4.8,
     reviewsCount: 940,
-    image: 'https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&h=700&fit=crop&auto=format',
     description: 'Gili paling dekat dengan daratan Lombok, memadukan suasana hidup yang santai, beach club pinggir pantai, dan titik snorkeling air jernih tanpa arus keras.',
     highlights: ['Penyeberangan cepat 15 menit', 'Snorkeling titik batu coral', 'Sunset bar tepi pantai', 'Sewa sepeda keliling pulau'],
     isPopular: true,
@@ -136,7 +136,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 100000,
     rating: 4.7,
     reviewsCount: 610,
-    image: 'https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=900&h=700&fit=crop&auto=format',
     description: 'Gili paling tenang dengan laguna dangkal, penyu laut yang jinak, dan hamparan pasir putih lepas tanpa keramaian.',
     highlights: ['Turtle point snorkeling', 'Laguna dangkal aman anak', 'Pulau bebas kendaraan bermotor', 'Taman burung & kebun kelapa'],
     ticketTiers: [
@@ -154,7 +154,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 150000,
     rating: 4.7,
     reviewsCount: 430,
-    image: 'https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=900&h=700&fit=crop&auto=format',
     description: 'Permata tersembunyi di gugusan Sekotong dengan pasir berbintang putih, karang dangkal, dan homestay pinggir pantai yang tenang.',
     highlights: ['Titik snorkeling karang dangkal', 'Pantai pasir berbintang', 'Homestay warga pinggir pantai', 'Konservasi penyu lokal'],
     ticketTiers: [
@@ -173,7 +173,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 20000,
     rating: 4.8,
     reviewsCount: 980,
-    image: 'https://images.unsplash.com/photo-1660020214290-800d5775a867?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=900&h=700&fit=crop&auto=format',
     description: 'Dua teluk pasir putih dengan air sebening kaca, favorit untuk berenang, piknik keluarga, dan pendakian singkat ke Bukit Merese.',
     highlights: ['Air jernih dangkal untuk berenang', 'Pendakian singkat Bukit Merese', 'Warung ikan bakar tepi pantai', 'Venue upacara Bau Nyale'],
     isPopular: true,
@@ -193,7 +193,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 10000,
     rating: 4.6,
     reviewsCount: 1240,
-    image: 'https://images.unsplash.com/photo-1660020214290-800d5775a867?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?w=900&h=700&fit=crop&auto=format',
     description: 'Pantai legendaris Lombok Barat dengan jalan pesisir, tebing batu karang, dan panorama matahari terbenam menghadap Gunung Agung Bali.',
     highlights: ['Sunset menghadap Bali', 'Pantai berenang keluarga', 'Jalur pesisir Senggigi', 'Dekat pusat hotel & kuliner'],
     ticketTiers: [
@@ -211,7 +211,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 15000,
     rating: 4.5,
     reviewsCount: 360,
-    image: 'https://images.unsplash.com/photo-1660020214290-800d5775a867?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=900&h=700&fit=crop&auto=format',
     description: 'Pantai kecil dengan formasi batu raksasa berbentuk payung alami, spot foto ikonik di ujung jalur pesisir selatan.',
     highlights: ['Formasi batu payung ikonik', 'Jalur ATV pesisir selatan', 'Ombak kecil ramah anak', 'Spot foto sunrise'],
     ticketTiers: [
@@ -229,7 +229,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 25000,
     rating: 4.7,
     reviewsCount: 300,
-    image: 'https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=900&h=700&fit=crop&auto=format',
     description: 'Pantai dengan pasir merah muda khas pecahan karang, tersembunyi di ujung timur Lombok dengan air laut bergradasi tiga warna.',
     highlights: ['Pasir merah muda langka', 'Snorkeling karang sehat', 'Tur perahu menuju Gili Petelu', 'Pemandangan pulau Sumbawa'],
     ticketTiers: [
@@ -248,7 +248,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 35000,
     rating: 4.8,
     reviewsCount: 520,
-    image: 'https://images.unsplash.com/photo-1746964246729-3bcad599e959?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=900&h=700&fit=crop&auto=format',
     description: 'Desa pengrajin tenun Songket Lombok dengan alat tenun tradisional Buku, tempat terbaik memahami sablon dan anyaman warga Sasak.',
     highlights: ['Workshop tenun songket', 'Rumah adat Buku & Bale Lemu', 'Etalase kain suvenir resmi', 'Pemandu perempuan Sasak'],
     ticketTiers: [
@@ -267,7 +267,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 20000,
     rating: 4.7,
     reviewsCount: 410,
-    image: 'https://images.unsplash.com/photo-1746964246729-3bcad599e959?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1604999565976-8913ad2ddb7c?w=900&h=700&fit=crop&auto=format',
     description: 'Pura Hindu di atas batu karang berlubang dengan pura kecil di tepi tebing, memadukan sejarah Majapahit dan panorama Samudra Hindia.',
     highlights: ['Gerbang candi bersejarah', 'Panorama tebing & ombak', 'Ritual umat Hindu Lombok', 'Sunset dari halaman pura'],
     ticketTiers: [
@@ -285,7 +285,7 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     price: 25000,
     rating: 4.6,
     reviewsCount: 280,
-    image: 'https://images.unsplash.com/photo-1685975875980-f19fbd4d36a6?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1546587348-d12660c30c50?w=900&h=700&fit=crop&auto=format',
     description: 'Air terjun bertingkat dengan kolam alami di hutan tropis Senaru, lebih sepi dari Sendang Gile dan favorit warga lokal.',
     highlights: ['Trekking hutan 20 menit', 'Kolam alami segar', 'Jalur sepi & asri', 'Kombinasi trip Senaru'],
     ticketTiers: [
@@ -304,7 +304,7 @@ export const INITIAL_EVENTS: TourismEvent[] = [
     location: 'Pantai Seger, Kawasan Mandalika',
     category: 'Budaya',
     price: 'Gratis',
-    image: 'https://images.unsplash.com/photo-1660020214290-800d5775a867?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1520942702018-0862200e6873?w=900&h=700&fit=crop&auto=format',
     description: 'Tradisi sakral menangkap cacing laut jelmaan Putri Mandalika dengan karnaval budaya, pemilihan Putri Mandalika, dan pertunjukan wayang Sasak semalam suntuk.',
     schedule: [
       { time: '19:00', activity: 'Karnaval Parade Budaya 1000 Putri Mandalika' },
@@ -320,7 +320,7 @@ export const INITIAL_EVENTS: TourismEvent[] = [
     location: 'Pantai Senggigi, Lombok Barat',
     category: 'Musik',
     price: 150000,
-    image: 'https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=900&h=700&fit=crop&auto=format',
     description: 'Festival musik jazz tepi pantai paling eksotis dengan latar belakang siluet matahari terbenam dan hembusan angin laut Selat Lombok.',
     schedule: [
       { time: '16:30', activity: 'Opening Act: Lombok Ethnic Jazz Fusion' },
@@ -336,7 +336,7 @@ export const INITIAL_EVENTS: TourismEvent[] = [
     location: 'Sembalun Valley, Lombok Timur',
     category: 'Olahraga',
     price: 350000,
-    image: 'https://images.unsplash.com/photo-1714645219293-106a5bb6d289?w=900&h=700&fit=crop&auto=format',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&h=700&fit=crop&auto=format',
     description: 'Lari lintas alam melintasi bukit savana Sembalun, kebun kopi, dan lembah purba Rinjani berstandar internasional ITRA.',
     schedule: [
       { time: '04:30', activity: 'Briefing & Race Start 50K Ultra' },

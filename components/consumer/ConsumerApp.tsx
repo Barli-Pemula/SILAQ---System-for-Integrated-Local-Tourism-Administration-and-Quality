@@ -66,6 +66,109 @@ const DEFAULT_PROMPTS = [
   'Berapa budget 3 hari 2 orang?',
 ]
 
+const HOME_SECTIONS: {
+  label: string
+  test: (category: Destination['category']) => boolean
+}[] = [
+  { label: 'Pantai & Gili', test: (c) => c === 'Pantai' || c === 'Gili' },
+  { label: 'Pegunungan', test: (c) => c === 'Gunung' || c === 'Air Terjun' },
+  { label: 'Budaya', test: (c) => c === 'Budaya' },
+]
+
+function DestinationCarouselCard({
+  item,
+  isSaved,
+  onToggleSave,
+  onOpen,
+  onBook,
+}: {
+  item: Destination
+  isSaved: boolean
+  onToggleSave: (name: string) => void
+  onOpen: (item: Destination) => void
+  onBook: (item: Destination) => void
+}) {
+  const open = () => onOpen(item)
+  return (
+    <article
+      className="destination-card carousel-card cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          open()
+        }
+      }}
+    >
+      <div className="relative h-36 overflow-hidden bg-slate-100 sm:h-40">
+        <img
+          src={item.image}
+          alt={item.name}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+        />
+        <span className="absolute top-2.5 left-2.5 rounded-full bg-slate-950/70 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
+          {item.category}
+        </span>
+        {item.discount && (
+          <span className="absolute bottom-2.5 left-2.5 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
+            {item.discount}
+          </span>
+        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleSave(item.name)
+          }}
+          aria-label="Simpan destinasi"
+          className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-slate-600 backdrop-blur-md hover:text-rose-500"
+        >
+          <Heart
+            className={`h-4 w-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`}
+          />
+        </button>
+      </div>
+      <div className="p-3.5">
+        <p className="flex items-center gap-1 text-[11px] text-slate-400">
+          <MapPin className="h-3 w-3 shrink-0 text-ocean-500" />
+          <span className="truncate">{item.location}</span>
+        </p>
+        <h3 className="font-display mt-1 line-clamp-1 text-[15px] font-bold text-slate-900">
+          {item.name}
+        </h3>
+        <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
+          <span className="flex items-center gap-1 font-bold text-amber-500">
+            <Star className="h-3 w-3 fill-current" />
+            {item.rating}
+          </span>
+          <span className="text-slate-400">({item.reviewsCount} ulasan)</span>
+        </div>
+        <div className="mt-2.5 flex items-end justify-between gap-2 border-t border-slate-100 pt-2.5">
+          <div className="min-w-0">
+            <span className="block text-[10px] text-slate-400">Mulai dari</span>
+            <strong className="font-display block truncate text-sm font-bold text-slate-900">
+              Rp {item.price.toLocaleString('id-ID')}
+              <span className="text-[10px] font-medium text-slate-400">/org</span>
+            </strong>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onBook(item)
+            }}
+            className="app-button app-button-primary shrink-0 px-3 py-1.5 text-[11px]"
+          >
+            Pesan
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function buildConsumerAnswer(raw: string, date: string): AiAnswer {
   const q = raw.toLowerCase().trim()
 
@@ -282,6 +385,17 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     return matchCat && matchQuery
   })
 
+  const homeSections = HOME_SECTIONS.filter(
+    (section) => category === 'Semua' || category === section.label
+  )
+    .map((section) => ({
+      ...section,
+      items: INITIAL_DESTINATIONS.filter(
+        (item) => section.test(item.category) && filteredDestinations.includes(item)
+      ),
+    }))
+    .filter((section) => section.items.length > 0)
+
   const renderHome = () => (
     <>
       <section className="consumer-hero">
@@ -427,113 +541,77 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             </button>
           </div>
 
-          <div className="mt-7 flex gap-2 overflow-x-auto pb-2">
-            {['Semua', 'Pantai & Gili', 'Pegunungan', 'Budaya'].map((item) => (
-              <button
-                key={item}
-                onClick={() => setCategory(item)}
-                className={`category-chip ${
-                  category === item ? 'category-chip-active' : ''
-                }`}
-              >
-                {item}
-              </button>
-            ))}
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+            {['Semua', ...HOME_SECTIONS.map((section) => section.label)].map(
+              (item) => (
+                <button
+                  key={item}
+                  onClick={() => setCategory(item)}
+                  className={`category-chip ${
+                    category === item ? 'category-chip-active' : ''
+                  }`}
+                >
+                  {item}
+                </button>
+              )
+            )}
           </div>
 
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredDestinations.map((item) => (
-              <div
-                key={item.id}
-                className="destination-card flex cursor-pointer flex-col justify-between"
-                role="button"
-                tabIndex={0}
-                onClick={() => setOverview(item)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setOverview(item)
-                  }
-                }}
-              >
-                <div>
-                  <div className="relative h-52 w-full overflow-hidden bg-slate-100">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="h-full w-full object-cover hover:scale-105 transition-transform duration-500"
-                    />
-                    <span className="absolute top-3 left-3 rounded-full bg-slate-950/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white">
-                      {item.category}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setSaved((curr) =>
-                          curr.includes(item.name)
-                            ? curr.filter((n) => n !== item.name)
-                            : [...curr, item.name]
-                        )
-                      }}
-                      className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-600 hover:text-rose-500"
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${
-                          saved.includes(item.name) ? 'fill-rose-500 text-rose-500' : ''
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-xs text-slate-400 flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-ocean-500" />
-                      {item.location}
-                    </p>
-                    <h3 className="font-display font-bold text-base text-slate-900 mt-1">
-                      {item.name}
+          {homeSections.length === 0 ? (
+            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-10 text-center">
+              <p className="font-display text-base font-semibold text-slate-700">
+                Tidak ada destinasi yang cocok
+              </p>
+              <p className="mt-1.5 text-sm text-slate-500">
+                Coba ubah kata kunci pencarian atau pilih kategori lainnya.
+              </p>
+            </div>
+          ) : (
+            homeSections.map((section) => (
+              <section key={section.label} className="mt-9">
+                <div className="flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-display text-lg font-semibold text-slate-900 sm:text-xl">
+                      {section.label}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
-                      {item.description}
+                    <p className="mt-1 text-xs text-slate-500">
+                      {section.items.length} destinasi pilihan · geser untuk
+                      melihat lebih banyak
                     </p>
-                    <div className="mt-3 flex items-center justify-between gap-2 text-xs">
-                      <span className="flex items-center gap-2">
-                        <span className="flex items-center text-amber-500 font-bold">
-                          <Star className="h-3.5 w-3.5 fill-current mr-1" />
-                          {item.rating}
-                        </span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-slate-500">{item.reviewsCount} Ulasan</span>
-                      </span>
-                      <span className="flex items-center gap-1 font-semibold text-ocean-600">
-                        Lihat overview
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  data-ui
-                  onClick={(e) => e.stopPropagation()}
-                  className="p-5 pt-3 border-t border-slate-100 flex items-center justify-between"
-                >
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">Mulai dari</span>
-                    <strong className="font-display text-base text-slate-900">
-                      Rp {item.price.toLocaleString('id-ID')}
-                    </strong>
-                    <span className="text-[10px] text-slate-400">/org</span>
                   </div>
                   <button
-                    onClick={() => openBooking(item)}
-                    className="app-button app-button-primary"
+                    onClick={() => {
+                      setCategory(section.label)
+                      setPage('Jelajahi')
+                    }}
+                    className="app-button app-button-ghost shrink-0"
                   >
-                    Pesan tiket
+                    Lihat semua
+                    <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
+
+                <div className="carousel-row mt-4">
+                  {section.items.map((item) => (
+                    <DestinationCarouselCard
+                      key={item.id}
+                      item={item}
+                      isSaved={saved.includes(item.name)}
+                      onToggleSave={(name) =>
+                        setSaved((curr) =>
+                          curr.includes(name)
+                            ? curr.filter((n) => n !== name)
+                            : [...curr, name]
+                        )
+                      }
+                      onOpen={setOverview}
+                      onBook={openBooking}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))
+          )}
         </section>
 
         {/* Active Journey & Carbon footprint section */}
