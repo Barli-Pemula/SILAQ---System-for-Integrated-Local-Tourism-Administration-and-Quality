@@ -484,6 +484,11 @@ button.visit-history-item:hover { background: #f8fafc; }
   .chat-bubble { max-width: 92%; font-size: .76rem; }
   .section-title { font-size: 1.25rem; }
 }
+.pengaduan-flash td { animation: pengaduan-flash 2.4s ease-out; }
+@keyframes pengaduan-flash {
+  0% { background: #fef9c3; }
+  100% { background: transparent; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .chat-dots i, .chat-cursor, .ai-skeleton, .chat-online-dot.is-busy { animation: none; }
+  .chat-dots i, .chat-cursor, .ai-skeleton, .chat-online-dot.is-busy, .pengaduan-flash td { animation: none; }
 }

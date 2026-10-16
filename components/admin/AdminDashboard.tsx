@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   LayoutDashboard,
   Wallet,
@@ -20,10 +20,20 @@ import {
   Printer,
   Receipt,
   FileSpreadsheet,
-  Calendar
+  Calendar,
+  MessageSquareWarning,
+  Clock,
+  PlayCircle
 } from 'lucide-react'
 import { INITIAL_DESTINATIONS, INITIAL_TRANSACTIONS } from '@/lib/smart-tourism-data'
-import { Transaction, TicketTier } from '@/types/smart-tourism'
+import { Transaction, TicketTier, Pengaduan, PengaduanStatus } from '@/types/smart-tourism'
+import {
+  usePengaduan,
+  updatePengaduanStatus,
+  simulateIncomingPengaduan,
+  pengaduanStatusChipClass,
+  pengaduanPriorityChipClass
+} from '@/lib/pengaduan-store'
 
 interface AdminDashboardProps {
   onLogout: () => void
@@ -69,11 +79,75 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [posCustomer, setPosCustomer] = useState('')
   const [posPayment, setPosPayment] = useState<'QRIS' | 'Tunai / Kasir' | 'GoPay'>('QRIS')
 
+  // Pengaduan (realtime shared store)
+  const pengaduanList = usePengaduan()
+  const [pgdFilter, setPgdFilter] = useState<'Semua' | PengaduanStatus>('Semua')
+  const [flashIds, setFlashIds] = useState<string[]>([])
+  const simTimer = useRef<number | null>(null)
+
+  const baruCount = pengaduanList.filter((p) => p.status === 'Baru').length
+  const diprosesCount = pengaduanList.filter((p) => p.status === 'Diproses').length
+  const selesaiCount = pengaduanList.filter((p) => p.status === 'Selesai').length
+  const filteredPengaduan =
+    pgdFilter === 'Semua'
+      ? pengaduanList
+      : pengaduanList.filter((p) => p.status === pgdFilter)
+
+  // Simulate incoming complaints while admin is viewing the Pengaduan tab
+  useEffect(() => {
+    if (activeNav !== 'Pengaduan') {
+      if (simTimer.current) {
+        window.clearInterval(simTimer.current)
+        simTimer.current = null
+      }
+      return
+    }
+    simTimer.current = window.setInterval(() => {
+      const item = simulateIncomingPengaduan()
+      setFlashIds((prev) => [...prev, item.id])
+      window.setTimeout(() => {
+        setFlashIds((prev) => prev.filter((id) => id !== item.id))
+      }, 2600)
+    }, 38000)
+    return () => {
+      if (simTimer.current) {
+        window.clearInterval(simTimer.current)
+        simTimer.current = null
+      }
+    }
+  }, [activeNav])
+
+  const formatPgdTime = (iso: string) => {
+    const d = new Date(iso)
+    return d.toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const handlePgdAction = (item: Pengaduan, next: PengaduanStatus) => {
+    const notes: Record<PengaduanStatus, string> = {
+      Baru: '',
+      Diproses: 'Laporan sedang ditindaklanjuti petugas destinasi.',
+      Selesai: 'Laporan telah diselesaikan. Terima kasih atas laporannya.',
+      Ditolak: 'Laporan tidak dapat diproses — mohon lengkapi bukti pendukung.',
+    }
+    updatePengaduanStatus(item.id, next, notes[next] || item.adminNote)
+    setFlashIds((prev) => [...prev, item.id])
+    window.setTimeout(() => {
+      setFlashIds((prev) => prev.filter((id) => id !== item.id))
+    }, 2000)
+    setNotice(`Pengaduan ${item.id} diperbarui menjadi “${next}”.`)
+  }
+
   const navItems = [
     { label: 'Ringkasan', icon: LayoutDashboard },
     { label: 'Validasi QR & Scanner', icon: QrCode },
     { label: 'Tiket & Harga', icon: Wallet },
     { label: 'Kasir POS', icon: Receipt },
+    { label: 'Pengaduan', icon: MessageSquareWarning },
     { label: 'Laporan Harian', icon: FileSpreadsheet },
     { label: 'Pengaturan', icon: Settings }
   ]
@@ -190,6 +264,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               >
                 <IconComponent className="h-4 w-4 shrink-0" />
                 <span>{item.label}</span>
+                {item.label === 'Pengaduan' && baruCount > 0 && (
+                  <span className="sidebar-count">{baruCount}</span>
+                )}
               </button>
             )
           })}
@@ -1004,6 +1081,196 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </table>
                 </div>
               </article>
+            </div>
+          )}
+
+          {/* TAB: PENGADUAN REAL-TIME */}
+          {activeNav === 'Pengaduan' && (
+            <div className="space-y-5">
+              <section className="metric-strip">
+                <div>
+                  <span className="metric-label">Total Pengaduan</span>
+                  <strong className="metric-value num">{pengaduanList.length}</strong>
+                  <span className="metric-note">Semua laporan masuk</span>
+                </div>
+                <div>
+                  <span className="metric-label">Baru Masuk</span>
+                  <strong className="metric-value num">{baruCount}</strong>
+                  <span className={`metric-note ${baruCount > 0 ? 'negative' : 'positive'}`}>
+                    {baruCount > 0 ? 'Perlu tindakan segera' : 'Semua tertangani'}
+                  </span>
+                </div>
+                <div>
+                  <span className="metric-label">Sedang Diproses</span>
+                  <strong className="metric-value num">{diprosesCount}</strong>
+                  <span className="metric-note">Dalam penanganan petugas</span>
+                </div>
+                <div>
+                  <span className="metric-label">Selesai</span>
+                  <strong className="metric-value num">{selesaiCount}</strong>
+                  <span className="metric-note positive">Laporan tertutup</span>
+                </div>
+              </section>
+
+              <article className="panel-card p-0 overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <h2 className="panel-title">Daftar Pengaduan Wisatawan</h2>
+                      <p className="panel-subtitle">
+                        Laporan masuk dari aplikasi wisatawan — pembaruan real-time
+                      </p>
+                    </div>
+                    <span className="status-live">
+                      <span /> Live pengaduan
+                    </span>
+                  </div>
+                  <div className="segmented">
+                    {(['Semua', 'Baru', 'Diproses', 'Selesai', 'Ditolak'] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        className={pgdFilter === f ? 'active' : ''}
+                        onClick={() => setPgdFilter(f)}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Pelapor</th>
+                        <th>Kategori</th>
+                        <th>Destinasi</th>
+                        <th>Kejadian</th>
+                        <th>Prioritas</th>
+                        <th>Status</th>
+                        <th>Waktu</th>
+                        <th className="text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredPengaduan.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-14 text-center text-slate-400">
+                            Tidak ada pengaduan pada filter ini.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredPengaduan.map((item) => {
+                          const isFlash = flashIds.includes(item.id)
+                          return (
+                            <tr
+                              key={item.id}
+                              className={isFlash ? 'pengaduan-flash' : undefined}
+                            >
+                              <td>
+                                <strong className="num text-ocean-700">{item.id}</strong>
+                              </td>
+                              <td>
+                                <strong>{item.reporterName}</strong>
+                                <span className="block text-[11px] text-slate-400">
+                                  {item.reporterEmail}
+                                </span>
+                              </td>
+                              <td>{item.category}</td>
+                              <td>
+                                {item.destination}
+                                <span className="block text-[11px] text-slate-400">
+                                  {item.locationDetail}
+                                </span>
+                              </td>
+                              <td className="max-w-[280px]">
+                                <span className="line-clamp-2 text-[13px] leading-5">
+                                  {item.message}
+                                </span>
+                                {item.adminNote && (
+                                  <span className="mt-1 block text-[11px] italic text-sky-700">
+                                    Catatan: {item.adminNote}
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                <span className={pengaduanPriorityChipClass(item.priority)}>
+                                  {item.priority}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={pengaduanStatusChipClass(item.status)}>
+                                  {item.status}
+                                </span>
+                              </td>
+                              <td className="num text-xs">
+                                <span className="flex items-center gap-1 text-slate-500">
+                                  <Clock className="h-3 w-3" />
+                                  {formatPgdTime(item.timestamp)}
+                                </span>
+                              </td>
+                              <td className="text-right">
+                                <div className="flex justify-end gap-1.5">
+                                  {item.status === 'Baru' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePgdAction(item, 'Diproses')}
+                                      className="app-button app-button-primary px-3 py-1.5 text-xs"
+                                    >
+                                      <PlayCircle className="h-3.5 w-3.5" />
+                                      Proses
+                                    </button>
+                                  )}
+                                  {(item.status === 'Baru' || item.status === 'Diproses') && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handlePgdAction(item, 'Selesai')}
+                                        className="app-button app-button-secondary px-3 py-1.5 text-xs"
+                                      >
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                        Selesai
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handlePgdAction(item, 'Ditolak')}
+                                        className="app-button app-button-secondary px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50"
+                                      >
+                                        <XCircle className="h-3.5 w-3.5" />
+                                        Tolak
+                                      </button>
+                                    </>
+                                  )}
+                                  {item.status === 'Selesai' && (
+                                    <span className="text-xs text-slate-400">—</span>
+                                  )}
+                                  {item.status === 'Ditolak' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePgdAction(item, 'Diproses')}
+                                      className="app-button app-button-ghost px-2 py-1 text-xs"
+                                    >
+                                      Buka lagi
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+
+              <p className="text-xs text-slate-400">
+                Pengaduan dari aplikasi wisatawan masuk otomatis ke antrean ini. Gunakan filter
+                status untuk fokus pada laporan baru, atau pantau badge “Pengaduan” di sidebar
+                untuk jumlah laporan yang belum ditangani.
+              </p>
             </div>
           )}
 

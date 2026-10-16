@@ -92,3 +92,31 @@ export interface AIMessage {
   timestamp: string
   suggestedActions?: string[]
 }
+
+export type PengaduanCategory =
+  | 'Kehilangan Barang'
+  | 'Fasilitas Rusak'
+  | 'Keamanan & Kenyamanan'
+  | 'Pelayanan Buruk'
+  | 'Lingkungan & Kebersihan'
+  | 'Lainnya'
+
+export type PengaduanStatus = 'Baru' | 'Diproses' | 'Selesai' | 'Ditolak'
+
+export type PengaduanPriority = 'Rendah' | 'Sedang' | 'Tinggi'
+
+export interface Pengaduan {
+  id: string
+  reporterName: string
+  reporterEmail: string
+  category: PengaduanCategory
+  destination: string
+  locationDetail: string
+  message: string
+  status: PengaduanStatus
+  priority: PengaduanPriority
+  timestamp: string
+  updatedAt?: string
+  adminNote?: string
+  isOwn?: boolean
+}

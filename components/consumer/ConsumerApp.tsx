@@ -34,7 +34,11 @@ import {
   Pencil,
   Gift,
   UtensilsCrossed,
-  Shirt
+  Shirt,
+  MessageSquareWarning,
+  ShieldAlert,
+  Clock,
+  SendHorizonal
 } from 'lucide-react'
 import {
   INITIAL_DESTINATIONS,
@@ -42,13 +46,18 @@ import {
   CARBON_PROJECTS
 } from '@/lib/smart-tourism-data'
 import { AiAnswer, useAiAssistant } from '@/lib/ai-assistant'
-import { Destination } from '@/types/smart-tourism'
+import { Destination, PengaduanCategory } from '@/types/smart-tourism'
+import {
+  usePengaduan,
+  addPengaduan,
+  pengaduanStatusChipClass
+} from '@/lib/pengaduan-store'
 
 interface ConsumerAppProps {
   onLogout: () => void
 }
 
-type ConsumerPage = 'Beranda' | 'Jelajahi' | 'Perjalanan' | 'Tiket Saya' | 'Kalender' | 'AI Guide' | 'Pemesanan' | 'Karbon' | 'Profil'
+type ConsumerPage = 'Beranda' | 'Jelajahi' | 'Perjalanan' | 'Tiket Saya' | 'Kalender' | 'AI Guide' | 'Pemesanan' | 'Karbon' | 'Pengaduan' | 'Profil'
 
 const navLabel = (page: ConsumerPage) =>
   page === 'Kalender' ? 'Event' : page === 'Beranda' ? 'Home' : page
@@ -387,6 +396,14 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
   const [aiInput, setAiInput] = useState('')
   const chatRef = useRef<HTMLDivElement | null>(null)
 
+  // Pengaduan form state
+  const pengaduanList = usePengaduan()
+  const [pgdCategory, setPgdCategory] = useState<PengaduanCategory>('Kehilangan Barang')
+  const [pgdDestination, setPgdDestination] = useState(INITIAL_DESTINATIONS[0].name)
+  const [pgdLocation, setPgdLocation] = useState('')
+  const [pgdMessage, setPgdMessage] = useState('')
+  const [pgdSubmitting, setPgdSubmitting] = useState(false)
+
   const {
     messages,
     stage,
@@ -448,6 +465,27 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     if (!tier || TOTAL_TRIPS < tier.required || claimedVouchers.includes(tierId)) return
     setClaimedVouchers((prev) => [...prev, tierId])
     setNotice(`Voucher “${tier.title}” diklaim! Kode ${tier.code} berlaku s/d 30 Apr 2026.`)
+  }
+
+  const handlePengaduanSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!pgdLocation.trim() || !pgdMessage.trim()) {
+      setNotice('Lengkapi lokasi kejadian dan deskripsi pengaduan terlebih dahulu.')
+      return
+    }
+    setPgdSubmitting(true)
+    window.setTimeout(() => {
+      const item = addPengaduan({
+        category: pgdCategory,
+        destination: pgdDestination,
+        locationDetail: pgdLocation.trim(),
+        message: pgdMessage.trim(),
+      })
+      setPgdSubmitting(false)
+      setPgdLocation('')
+      setPgdMessage('')
+      setNotice(`Pengaduan ${item.id} terkirim! Petugas destinasi akan menindaklanjuti secara real-time.`)
+    }, 600)
   }
 
   const basePrice =
@@ -632,8 +670,8 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
       </section>
 
       <div className="consumer-container pb-12 pt-6 md:py-12">
-        {/* 3 Quick feature cards (desktop/tablet only) */}
-        <section className="relative z-10 mb-14 hidden gap-4 md:-mt-20 md:grid md:grid-cols-3">
+        {/* Quick feature cards (desktop/tablet only) */}
+        <section className="relative z-10 mb-14 hidden gap-4 md:-mt-20 md:grid md:grid-cols-2 lg:grid-cols-4">
           <button
             onClick={() => openBooking(INITIAL_DESTINATIONS[0])}
             className="feature-card text-left"
@@ -687,6 +725,24 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               </strong>
               <span className="mt-1 block text-xs leading-5 text-slate-500">
                 Pantau dan offset emisi perjalanan dengan mudah
+              </span>
+            </span>
+            <ChevronRight className="ml-auto text-slate-300 h-5 w-5" />
+          </button>
+
+          <button
+            onClick={() => setPage('Pengaduan')}
+            className="feature-card text-left"
+          >
+            <span className="feature-icon">
+              <MessageSquareWarning className="h-5 w-5 text-ocean-600" />
+            </span>
+            <span>
+              <strong className="font-display text-base font-semibold text-slate-900">
+                Pengaduan Online
+              </strong>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">
+                Laporkan kehilangan barang atau kejadian tidak menyenangkan
               </span>
             </span>
             <ChevronRight className="ml-auto text-slate-300 h-5 w-5" />
@@ -2114,6 +2170,188 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
       )
     }
 
+    if (page === 'Pengaduan') {
+      const myPengaduan = pengaduanList.filter((p) => p.isOwn)
+      const destinationOptions = INITIAL_DESTINATIONS.map((d) => d.name)
+      const categoryOptions: PengaduanCategory[] = [
+        'Kehilangan Barang',
+        'Fasilitas Rusak',
+        'Keamanan & Kenyamanan',
+        'Pelayanan Buruk',
+        'Lingkungan & Kebersihan',
+        'Lainnya',
+      ]
+      const formatTime = (iso: string) => {
+        const d = new Date(iso)
+        return d.toLocaleString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      }
+      return (
+        <section className="pb-12">
+          <div className="consumer-container pt-6 md:pt-10">
+            <p className="section-eyebrow">Bantuan Wisatawan</p>
+            <h2 className="section-title">Pengaduan Online</h2>
+            <p className="section-description">
+              Alami kejadian tidak baik atau kehilangan barang di destinasi? Laporkan di sini —
+              laporan masuk real-time ke petugas mitra dan statusnya bisa kamu pantau langsung.
+            </p>
+
+            <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+              {/* Form */}
+              <article className="panel-card self-start">
+                <div className="panel-head">
+                  <div>
+                    <h3 className="panel-title">Buat Laporan Baru</h3>
+                    <p className="panel-subtitle">Isi data kejadian selengkap mungkin</p>
+                  </div>
+                  <span className="status-live">
+                    <span /> Real-time
+                  </span>
+                </div>
+                <form onSubmit={handlePengaduanSubmit} className="mt-2 space-y-4">
+                  <label className="block">
+                    <span className="field-label">Kategori Pengaduan</span>
+                    <select
+                      value={pgdCategory}
+                      onChange={(e) => setPgdCategory(e.target.value as PengaduanCategory)}
+                      className="select-control"
+                    >
+                      {categoryOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="field-label">Destinasi</span>
+                    <select
+                      value={pgdDestination}
+                      onChange={(e) => setPgdDestination(e.target.value)}
+                      className="select-control"
+                    >
+                      {destinationOptions.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="field-label">Lokasi Kejadian</span>
+                    <input
+                      type="text"
+                      value={pgdLocation}
+                      onChange={(e) => setPgdLocation(e.target.value)}
+                      placeholder="Contoh: Dermaga Bangsal, area tunggu kapal"
+                      className="field-input"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="field-label">Deskripsi Kejadian</span>
+                    <textarea
+                      value={pgdMessage}
+                      onChange={(e) => setPgdMessage(e.target.value)}
+                      rows={5}
+                      placeholder="Jelaskan kronologi, ciri-ciri barang, atau detail kejadian…"
+                      className="field-input resize-none"
+                    />
+                  </label>
+                  <div className="flex items-start gap-2 rounded-lg border border-sky-100 bg-sky-50 p-3 text-[11px] leading-5 text-sky-800">
+                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      Laporan kehilangan barang &amp; gangguan keamanan otomatis diprioritaskan
+                      Tinggi dan diteruskan ke petugas gerbang terdekat.
+                    </span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={pgdSubmitting}
+                    className="app-button app-button-primary w-full justify-center py-2.5"
+                  >
+                    {pgdSubmitting ? (
+                      <>
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                        Mengirim laporan…
+                      </>
+                    ) : (
+                      <>
+                        <SendHorizonal className="h-4 w-4" />
+                        Kirim Pengaduan
+                      </>
+                    )}
+                  </button>
+                </form>
+              </article>
+
+              {/* Live list */}
+              <article className="panel-card self-start">
+                <div className="panel-head">
+                  <div>
+                    <h3 className="panel-title">Pengaduan Saya</h3>
+                    <p className="panel-subtitle">
+                      {myPengaduan.length} laporan · pembaruan status real-time
+                    </p>
+                  </div>
+                  <span className="status-live">
+                    <span /> Live
+                  </span>
+                </div>
+                {myPengaduan.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 py-14 text-center">
+                    <MessageSquareWarning className="h-8 w-8 text-slate-300" />
+                    <p className="mt-3 text-sm font-semibold text-slate-500">
+                      Belum ada pengaduan
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Laporan yang kamu kirim akan tampil di sini.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-1 space-y-3">
+                    {myPengaduan.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-xl border border-slate-100 bg-slate-50/60 p-4"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="num text-xs font-bold text-ocean-700">{item.id}</span>
+                          <span className={pengaduanStatusChipClass(item.status)}>
+                            {item.status}
+                          </span>
+                          <span className="ml-auto flex items-center gap-1 text-[11px] text-slate-400">
+                            <Clock className="h-3 w-3" />
+                            {formatTime(item.timestamp)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                          {item.category} · {item.destination}
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                          {item.locationDetail}
+                        </p>
+                        <p className="mt-2 text-[13px] leading-6 text-slate-600">{item.message}</p>
+                        {item.adminNote && (
+                          <div className="mt-3 rounded-lg border border-sky-100 bg-white p-3">
+                            <span className="field-label">Tanggapan petugas</span>
+                            <p className="text-xs leading-5 text-slate-600">{item.adminNote}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </article>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
     if (page === 'Profil') {
       const menu: {
         icon: React.ReactNode
@@ -2165,6 +2403,12 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             claimedVouchers.length
           } voucher bisa diklaim`,
           action: () => setPage('Perjalanan'),
+        },
+        {
+          icon: <MessageSquareWarning className="h-4 w-4 text-rose-500" />,
+          title: 'Pengaduan Online',
+          subtitle: 'Laporkan kehilangan atau kejadian di destinasi',
+          action: () => setPage('Pengaduan'),
         },
       ]
       return (
