@@ -62,6 +62,7 @@ try {
   }
   if (!ready) throw new Error('Preview server not ready')
   await finished(child(['scripts/marketplace-smoke.cjs']))
+  await finished(child(['scripts/login-template-smoke.cjs']))
 } catch (error) {
   console.error(error.message)
   process.exitCode = 1

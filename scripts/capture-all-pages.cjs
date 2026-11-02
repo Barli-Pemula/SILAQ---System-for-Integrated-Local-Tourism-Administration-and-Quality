@@ -107,6 +107,7 @@ async function main() {
           .waitFor()
       }
       const chooseRole = async (role) => {
+        await page.getByRole('button', { name: /^Masuk sebagai/ }).waitFor()
         const label =
           role === 'consumer'
             ? 'Wisatawan'

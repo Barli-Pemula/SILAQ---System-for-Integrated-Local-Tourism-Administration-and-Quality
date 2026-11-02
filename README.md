@@ -10,7 +10,7 @@ Platform pariwisata Lombok dengan portal wisatawan, admin mitra, dan superadmin.
 - Voucher QR per destinasi/hotel/kapal serta itinerary lengkap terbit setelah pembayaran berhasil.
 - Unduhan tiket HTML berisi QR, dapat dibuka offline dan dicetak menjadi PDF.
 - Harga, kuota, pembayaran, hak akses, dan check-in diverifikasi di server.
-- Template login Gilang dapat diaktifkan khusus mode demo.
+- Akun Gilang otomatis terisi setiap halaman login dibuka; pilih peran lalu tekan Masuk. Kolom tetap dapat diedit untuk akun lain.
 
 ## Pengembangan lokal
 
@@ -25,7 +25,9 @@ Buka `http://localhost:3000`. Tanpa `DATABASE_URL`, perintah dev menggunakan Pos
 
 Untuk akun Gilang pada ketiga portal, jalankan `npm run setup:gilang`. Perintah menampilkan password awal hanya untuk akun yang baru dibuat; akun yang sudah ada tidak diubah. Untuk memilih password awal, isi `GILANG_INITIAL_PASSWORD` sebelum menjalankannya.
 
-Autofill diaktifkan melalui `.env.local`. Tombol **Gunakan template Gilang** mengisi ulang email dan password untuk peran yang sedang dipilih, termasuk setelah kolom diedit:
+Form login langsung menampilkan template publik Gilang sejak pertama muncul, tanpa menekan tombol atau mengaktifkan environment autofill. Peran awal adalah Wisatawan; memilih Admin Mitra atau SuperAdmin langsung mengganti isian sesuai peran. **Gunakan akun lain** mengosongkan kolom; akun lain juga bisa diketik langsung. Isian yang sedang diedit tidak ditimpa oleh respons konfigurasi. Membuka ulang halaman login kembali menampilkan Gilang.
+
+Password template publik adalah `GilangDemo123!`, khusus contoh presentasi. Login tetap diverifikasi server; akun harus dibuat di database. Untuk memakai password demo berbeda yang sudah dikonfigurasi, isi `.env.local`:
 
 ```dotenv
 PAYMENT_MODE=demo
@@ -34,9 +36,9 @@ DEMO_LOGIN_ENABLED=true
 DEMO_LOGIN_PASSWORD=ISI_PASSWORD_AKUN_DEMO_YANG_SUDAH_DIBUAT
 ```
 
-Ketiga akun menggunakan email `gilang.wisatawan@silaq.local`, `gilang.admin@silaq.local`, dan `gilang.superadmin@silaq.local`. Password tidak disimpan dalam repository. Autofill tidak diberikan dalam mode sandbox atau production.
+Ketiga akun menggunakan email `gilang.wisatawan@silaq.local`, `gilang.admin@silaq.local`, dan `gilang.superadmin@silaq.local`. Password pribadi tidak disimpan dalam repository. Override password dari server hanya diberikan dalam mode demo; sandbox/production hanya menampilkan template publik.
 
-Saat membuat akun baru, `setup:gilang` memakai `GILANG_INITIAL_PASSWORD`, lalu `DEMO_LOGIN_PASSWORD` bila tersedia, agar akun sesuai dengan template. Akun yang sudah ada tetap dipertahankan.
+Saat membuat akun baru, `setup:gilang` memakai `GILANG_INITIAL_PASSWORD`, lalu `DEMO_LOGIN_PASSWORD` bila tersedia. Dalam mode demo/lokal, tanpa override, akun baru memakai password template publik. Pada sandbox/production, tanpa password provisioning, script membuat password acak. Akun yang sudah ada tetap dipertahankan.
 
 ## Vercel
 
@@ -45,7 +47,7 @@ Konfigurasi tersedia di `.env.example` dan `vercel.json`. Atur environment di pr
 - `DATABASE_URL`: koneksi PostgreSQL persisten; PGlite lokal tidak digunakan pada Vercel.
 - `APP_URL`: URL aplikasi yang menerima permintaan dan notifikasi pembayaran.
 - `PAYMENT_MODE`: `demo`, `sandbox`, atau `production`.
-- Untuk demo: `ALLOW_DEMO_PAYMENTS=true`. Jika autofill diperlukan, aktifkan dua variabel `DEMO_LOGIN_*` di atas.
+- Untuk demo: `ALLOW_DEMO_PAYMENTS=true`. Dua variabel `DEMO_LOGIN_*` hanya diperlukan bila memakai password template demo berbeda dari bawaan publik.
 - Untuk Midtrans: `MIDTRANS_SERVER_KEY` sesuai lingkungan; URL notifikasi adalah `/api/payments/midtrans` pada domain aplikasi.
 
 Jalankan `npm run setup` dengan koneksi database target untuk menyiapkan schema dan, bila variabel `PROVISION_*` diisi, akun pengelola. Jalankan `npm run setup:gilang` dengan koneksi database target bila menggunakan akun demo di Vercel. Hapus password provisioning dari environment setelah selesai.

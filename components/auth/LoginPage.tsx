@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, FormEvent } from 'react'
 import { Role } from '@/types/smart-tourism'
 import { DemoLoginTemplate, SessionUser } from '@/types/auth'
 import { api } from '@/lib/booking-store'
+import { DEFAULT_DEMO_LOGIN_TEMPLATE } from '@/lib/demo-accounts'
 import {
   User,
   LayoutDashboard,
@@ -53,23 +54,31 @@ export default function LoginPage({
   initialError = '',
 }: LoginPageProps) {
   const [role, setRole] = useState<Role>('consumer')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState(
+    DEFAULT_DEMO_LOGIN_TEMPLATE.emails.consumer
+  )
+  const [password, setPassword] = useState(DEFAULT_DEMO_LOGIN_TEMPLATE.password)
   const [showPassword, setShowPassword] = useState(false)
   const [loginMessage, setLoginMessage] = useState(initialError)
   const [registering, setRegistering] = useState(false)
-  const [name, setName] = useState('')
+  const [name, setName] = useState(DEFAULT_DEMO_LOGIN_TEMPLATE.name)
   const [busy, setBusy] = useState(false)
-  const [template, setTemplate] = useState<DemoLoginTemplate | null>(null)
+  const [template, setTemplate] = useState<DemoLoginTemplate>(
+    DEFAULT_DEMO_LOGIN_TEMPLATE
+  )
+  const [loadingTemplate, setLoadingTemplate] = useState(true)
   const edited = useRef(false)
 
   useEffect(() => {
     let active = true
     api<{ demoLogin?: DemoLoginTemplate | null }>('/api/config')
       .then((config) => {
-        if (active) setTemplate(config.demoLogin || null)
+        if (active && config.demoLogin) setTemplate(config.demoLogin)
       })
       .catch(() => {})
+      .finally(() => {
+        if (active) setLoadingTemplate(false)
+      })
     return () => {
       active = false
     }
@@ -98,7 +107,7 @@ export default function LoginPage({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (busy) return
+    if (busy || loadingTemplate) return
     setBusy(true)
     setLoginMessage('')
     try {
@@ -275,18 +284,31 @@ export default function LoginPage({
 
           <div className="mb-5 text-xs leading-6 text-slate-500">
             <p>
-              {template && !registering
-                ? `Akun ${template.name} sudah terisi. Pilih peran, lalu tekan Masuk untuk mencoba portalnya.`
+              {!registering
+                ? `Akun ${template.name} otomatis terisi setiap halaman login dibuka. Pilih peran, lalu tekan Masuk. Untuk akun lain, ubah kolom di bawah atau pilih Gunakan akun lain.`
                 : 'Masuk menggunakan akunmu. Hak akses wisatawan, mitra, dan pengelola diverifikasi oleh server.'}
             </p>
-            {template && !registering && (
+            {!registering && (
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => handleRoleSelect(role)}
+                onClick={() => {
+                  if (
+                    email === template.emails[role] &&
+                    password === template.password
+                  ) {
+                    edited.current = true
+                    setEmail('')
+                    setPassword('')
+                    setLoginMessage('')
+                  } else handleRoleSelect(role)
+                }}
                 className="mt-1 min-h-11 font-semibold text-ocean-600 hover:underline"
               >
-                Gunakan template Gilang
+                {email === template.emails[role] &&
+                password === template.password
+                  ? 'Gunakan akun lain'
+                  : 'Gunakan template Gilang'}
               </button>
             )}
           </div>
@@ -407,11 +429,11 @@ export default function LoginPage({
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || loadingTemplate}
               className="app-button app-button-primary w-full justify-center py-3 text-sm sm:py-3.5"
             >
               <span>
-                {busy
+                {busy || loadingTemplate
                   ? 'Memproses…'
                   : registering
                     ? 'Daftar wisatawan'

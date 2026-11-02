@@ -4,7 +4,11 @@ import { authenticate, createUser } from '../lib/server/auth'
 import { closeDatabase, ensureDatabase, query } from '../lib/server/db'
 import { MARKET_PRODUCTS } from '../lib/marketplace-data'
 import { Role } from '../types/smart-tourism'
-import { DEMO_ACCOUNT_EMAILS, DEMO_ACCOUNT_NAME } from '../lib/demo-accounts'
+import {
+  DEMO_ACCOUNT_EMAILS,
+  DEMO_ACCOUNT_NAME,
+  DEFAULT_DEMO_LOGIN_TEMPLATE,
+} from '../lib/demo-accounts'
 
 const name = DEMO_ACCOUNT_NAME
 const accounts = (['consumer', 'admin', 'superadmin'] as Role[]).map(
@@ -22,6 +26,10 @@ async function main() {
   const password =
     process.env.GILANG_INITIAL_PASSWORD ||
     process.env.DEMO_LOGIN_PASSWORD ||
+    (process.env.PAYMENT_MODE === 'demo' ||
+    (!process.env.PAYMENT_MODE && !process.env.VERCEL)
+      ? DEFAULT_DEMO_LOGIN_TEMPLATE.password
+      : '') ||
     randomBytes(15).toString('base64url')
   let created = 0
   for (const account of accounts) {
