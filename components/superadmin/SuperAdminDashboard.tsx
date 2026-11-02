@@ -33,9 +33,12 @@ import {
 } from '@/lib/smart-tourism-data'
 import { AiAnswer, AiMessage, useAiAssistant } from '@/lib/ai-assistant'
 import { Partner, Destination } from '@/types/smart-tourism'
+import TravelOperations from '@/components/admin/TravelOperations'
+import { SessionUser } from '@/types/auth'
 
 interface SuperAdminDashboardProps {
   onLogout: () => void
+  user: SessionUser
 }
 
 const AI_STAGES = [
@@ -195,8 +198,9 @@ const partnerStatusLabel = (status: Partner['status']) => {
   return 'Offline'
 }
 
-export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardProps) {
+export default function SuperAdminDashboard({ onLogout, user }: SuperAdminDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan')
+  const isLivePage = activeNav === 'Layanan & Pesanan'
   const [mobileMenu, setMobileMenu] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -265,6 +269,7 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
 
   const navItems = [
     { label: 'Ringkasan', icon: LayoutDashboard },
+    { label: 'Layanan & Pesanan', icon: Wallet },
     { label: 'AI Insight', icon: Sparkles },
     { label: 'Mitra & Admin', icon: Users },
     { label: 'Destinasi', icon: MapPin },
@@ -354,7 +359,7 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
               <User className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">Nadia Permata</p>
+              <p className="truncate text-sm font-semibold text-white">{user.name}</p>
               <p className="truncate text-xs text-slate-400">Dispar NTB</p>
             </div>
             <button
@@ -375,16 +380,18 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
             onClick={() => setMobileMenu(!mobileMenu)}
             className="admin-icon-button min-[1101px]:hidden"
             aria-label="Buka menu"
+            aria-expanded={mobileMenu}
           >
             <Menu className="h-4 w-4" />
           </button>
+          <span className="admin-mobile-title min-[1101px]:hidden">{activeNav}</span>
           <div className="admin-search">
             <Search className="h-4 w-4" />
             <span>Cari data, mitra, atau wilayah</span>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-sm font-medium text-slate-600 sm:block">
-              Februari 2026
+              {isLivePage ? 'Data pesanan server' : 'Februari 2026 · contoh'}
             </span>
             <button
               onClick={() => setNotice('Semua 48 node gate di Lombok terhubung ke server pusat.')}
@@ -409,7 +416,7 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
                   : `Kelola data ${activeNav.toLowerCase()} dengan wewenang SuperAdmin.`}
               </p>
             </div>
-            <div className="page-actions">
+            {!isLivePage && <div className="page-actions">
               <button
                 type="button"
                 onClick={() => setNotice('Rentang laporan aktif: 1–28 Februari 2026.')}
@@ -426,7 +433,7 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
                 <Download className="h-4 w-4" />
                 Ekspor laporan
               </button>
-            </div>
+            </div>}
           </div>
 
           {notice && (
@@ -436,6 +443,8 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
             </div>
           )}
 
+          {activeNav === 'Layanan & Pesanan' && <TravelOperations />}
+          {activeNav !== 'Layanan & Pesanan' && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Transaksi dan voucher server tersedia pada Layanan & Pesanan.</p>}
           {/* TAB 1: RINGKASAN EKOSISTEM */}
           {activeNav === 'Ringkasan' && (
             <div className="space-y-5">
@@ -1206,7 +1215,7 @@ export default function SuperAdminDashboard({ onLogout }: SuperAdminDashboardPro
                     <span className="field-label">Penanggung jawab sistem</span>
                     <input
                       type="text"
-                      defaultValue="Nadia Permata, M.Par"
+                      defaultValue={user.name}
                       className="field-input"
                     />
                   </label>

@@ -47,6 +47,11 @@ import {
 } from '@/lib/smart-tourism-data'
 import { AiAnswer, useAiAssistant } from '@/lib/ai-assistant'
 import { Destination, PengaduanCategory } from '@/types/smart-tourism'
+import { MarketCategory, MarketProduct } from '@/types/marketplace'
+import { SessionUser } from '@/types/auth'
+import { addDays, BOATS, CULINARY_PLACES, dateLabel, HOTELS, MARKET_PRODUCTS, rupiah, todayISO, TOUR_BUNDLES } from '@/lib/marketplace-data'
+import { BookingCheckout, BookingLibrary, ExploreMarketplace, FeaturedBundles, PaymentEnvironmentNotice, TravelShortcuts } from './TravelMarketplace'
+import { ItineraryOverview } from './ItineraryOverview'
 import {
   usePengaduan,
   addPengaduan,
@@ -55,6 +60,7 @@ import {
 
 interface ConsumerAppProps {
   onLogout: () => void
+  user: SessionUser
 }
 
 type ConsumerPage = 'Beranda' | 'Jelajahi' | 'Perjalanan' | 'Tiket Saya' | 'Kalender' | 'AI Guide' | 'Pemesanan' | 'Karbon' | 'Pengaduan' | 'Profil'
@@ -71,7 +77,7 @@ const AI_STAGES = [
 const INITIAL_MESSAGES = [
   {
     from: 'ai' as const,
-    text: 'Halo Reza, saya AI Guide SILAQ. Saya bisa membantu membuat itinerary, mencari transportasi, atau memberi rekomendasi lokal.',
+    text: 'Halo, saya AI Guide SILAQ. Saya bisa membantu membuat itinerary, mencari transportasi, atau memberi rekomendasi lokal.',
   },
 ]
 
@@ -253,12 +259,28 @@ function DestinationCarouselCard({
 function buildConsumerAnswer(raw: string, date: string): AiAnswer {
   const q = raw.toLowerCase().trim()
 
+  if (/paket|bundling|itinerary|itenerary|rencana perjalanan|susun rute/.test(q)) {
+    return { text: `Pilihan paket di katalog demo SILAQ:\n${TOUR_BUNDLES.map(p => `• ${p.name} — ${p.destinationIds?.length} destinasi, ${p.durationDays} hari, ${rupiah(p.price)}/orang`).join('\n')}\n\nBuka Jelajahi → Paket Wisata untuk melihat ringkasan rute. Hotel dapat ditambahkan saat pemesanan; kuliner adalah rekomendasi dan dibayar langsung di tempat. Itinerary lengkap beserta jam dan alamat terbuka setelah pembayaran simulasi berhasil. Transportasi antar tempat belum termasuk.`, followUps: ['Pilihan hotel di Lombok', 'Tiket kapal ke Lombok', 'Rekomendasi kuliner'] }
+  }
+  if (/hotel|penginapan|villa|homestay|menginap|akomodasi/.test(q)) {
+    return { text: `Pilihan menginap dalam katalog demo:\n${HOTELS.map(h => `• ${h.name} — ${h.location}, ${rupiah(h.price)}/kamar/malam`).join('\n')}\n\nBuka Jelajahi → Hotel untuk memilih tanggal check-in, check-out, dan jumlah kamar. Maksimal 2 tamu per kamar. Nama mitra dan harga masih ilustratif; belum terhubung ke hotel nyata.`, followUps: ['Paket wisata dengan hotel', 'Rekomendasi kuliner', 'Tiket kapal ke Lombok'] }
+  }
+  if (/kapal|fast boat|feri|ferry|penyeberangan/.test(q)) {
+    return { text: `Rute kapal dalam katalog demo:\n${BOATS.map(b => `• ${b.name} — mulai ${rupiah(b.price)}/penumpang, ${b.duration}`).join('\n')}\n\nBuka Jelajahi → Tiket Kapal untuk memilih tanggal, jam WITA, dan jumlah penumpang. Semua rute sekali jalan. Jadwal dan ketersediaan masih simulasi; belum merupakan reservasi operator.`, followUps: ['Pilihan hotel di Lombok', 'Paket wisata Lombok', 'Cara pembayaran tiket'] }
+  }
+  if (/kuliner|tempat makan|restoran|jajan/.test(q)) {
+    return { text: `Inspirasi kuliner dalam katalog demo:\n${CULINARY_PLACES.map(p => `• ${p.name} — ${p.location}; ${p.specialty}`).join('\n')}\n\nBuka Jelajahi → Kuliner untuk overview, alamat kawasan, dan peta. Kuliner tidak dapat dipesan melalui SILAQ. Nama tempat masih ilustratif untuk demo.`, followUps: ['Paket wisata Lombok', 'Pilihan hotel di Lombok'] }
+  }
+  if (/pembayaran|qris|transfer|tiket saya|unduh tiket/.test(q)) {
+    return { text: 'Pemesanan demo mendukung simulasi QRIS dan Virtual Account. Periksa detail, pilih metode, lalu simulasikan pembayaran. Voucher hanya diterbitkan setelah pembayaran berhasil; pembayaran gagal tidak menghasilkan tiket.\n\nBuka Tiket Saya untuk melihat pesanan, mengunduh voucher, dan membuka itinerary paket. Data hanya tersimpan di browser ini, tanpa transaksi uang atau pengiriman email nyata.', followUps: ['Paket wisata Lombok', 'Pilihan hotel di Lombok', 'Tiket kapal ke Lombok'] }
+  }
+
   if (
     /^(halo|hai|hi|hello|pagi|siang|sore|malam|terima kasih|makasih)\b/.test(q) &&
     q.split(' ').length <= 5
   ) {
     return {
-      text: `Halo! Saya AI Guide SILAQ. Untuk kunjungan ${date} saya bisa bantu tiga hal: menyusun itinerary, menghitung budget, atau memilih destinasi sesuai gaya perjalananmu. Semua tiket di sini berupa e-ticket QR jadi tidak perlu antre di loket.`,
+      text: `Halo! Saya AI Guide SILAQ. Untuk kunjungan ${date} saya bisa bantu tiga hal: menyusun itinerary, menghitung budget, atau memilih destinasi sesuai gaya perjalananmu. Kamu juga bisa melihat paket wisata, hotel, tiket kapal, dan kuliner dalam katalog demo.`,
       followUps: ['Buat itinerary 1 hari', 'Berapa budget 3 hari 2 orang?', 'Destinasi rating tertinggi'],
     }
   }
@@ -369,24 +391,25 @@ function buildConsumerAnswer(raw: string, date: string): AiAnswer {
   }
 
   return {
-    text: `Berdasarkan pertanyaanmu, tiga opsi paling relevan untuk ${date}:\n• Gili Trawangan (4,9 · Rp 150.000) — untuk aktivitas bahari\n• Desa Adat Sade (4,9 · Rp 35.000) — untuk pengalaman budaya\n• Sembalun, Rinjani (4,8 · Rp 175.000) — untuk suasana pegunungan\n\nSemua bisa langsung dipesan dengan e-ticket QR. Mau saya susun rute lengkap sesuai tanggal pilihanmu?`,
+    text: `Berdasarkan pertanyaanmu, tiga opsi paling relevan untuk ${date}:\n• Gili Trawangan (4,9 · Rp 150.000) — untuk aktivitas bahari\n• Desa Adat Sade (4,9 · Rp 35.000) — untuk pengalaman budaya\n• Sembalun, Rinjani (4,8 · Rp 175.000) — untuk suasana pegunungan\n\nLihat pilihan pemesanan demo di menu Jelajahi. Mau saya susun rute lengkap sesuai tanggal pilihanmu?`,
     followUps: ['Susun rute lengkap', 'Rekomendasi rating tertinggi', 'Destinasi paling dekat'],
   }
 }
 
-export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
+export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
   const [page, setPage] = useState<ConsumerPage>('Beranda')
+  const [marketCategory, setMarketCategory] = useState<MarketCategory>('Destinasi')
+  const [marketProduct, setMarketProduct] = useState<MarketProduct | null>(null)
+  const [bookingId, setBookingId] = useState('')
+  useEffect(() => {
+    const orderId = new URLSearchParams(window.location.search).get('order')
+    if (orderId && /^SLQ-[a-f0-9-]{36}$/.test(orderId)) { setBookingId(orderId); setPage('Tiket Saya') }
+  }, [])
   const [category, setCategory] = useState('Semua')
   const [query, setQuery] = useState('')
-  const [selectedDate, setSelectedDate] = useState('28 Feb 2026')
+  const [travelDate, setTravelDate] = useState(todayISO)
+  const selectedDate = dateLabel(travelDate)
   const [dateOpen, setDateOpen] = useState(false)
-  const [selectedDestination, setSelectedDestination] = useState<Destination>(
-    INITIAL_DESTINATIONS[0]
-  )
-  const [quantity, setQuantity] = useState(2)
-  const [ticketType, setTicketType] = useState(
-    INITIAL_DESTINATIONS[0].ticketTiers[0].name
-  )
   const [selectedEventDay, setSelectedEventDay] = useState(24)
   const [eventCategory, setEventCategory] = useState('Semua')
   const [saved, setSaved] = useState<string[]>([])
@@ -424,7 +447,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     ['Jelajahi', 'search'],
     ['Kalender', 'calendar'],
     ['AI Guide', 'bot'],
-    ['Karbon', 'leaf'],
+    ['Tiket Saya', 'ticket'],
     ['Profil', 'user'],
   ]
 
@@ -435,6 +458,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     bot: Bot,
     leaf: Leaf,
     user: User,
+    ticket: Ticket,
   }
 
   useEffect(() => {
@@ -447,12 +471,14 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     window.scrollTo({ top: 0 })
   }, [page])
 
-  const openBooking = (destination: Destination) => {
-    setSelectedDestination(destination)
-    setTicketType(destination.ticketTiers[0]?.name ?? destination.ticketTiers[0]?.id ?? 'Reguler')
+  const openMarketBooking = (product: MarketProduct) => {
+    setMarketProduct(product)
     setPage('Pemesanan')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+  const openBooking = (destination: Destination) => openMarketBooking(MARKET_PRODUCTS.find(p => p.id === destination.id)!)
+  const exploreCategory = (category: MarketCategory) => { setMarketCategory(category); setQuery(''); setPage('Jelajahi') }
+  const selectBooking = (id: string) => { setBookingId(id); setPage('Tiket Saya'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   const submitPrompt = (text = aiInput) => {
     if (!text.trim() || isBusy) return
@@ -487,11 +513,6 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
       setNotice(`Pengaduan ${item.id} terkirim! Petugas destinasi akan menindaklanjuti secara real-time.`)
     }, 600)
   }
-
-  const basePrice =
-    selectedDestination.ticketTiers.find((tier) => tier.name === ticketType)
-      ?.price ?? selectedDestination.price
-  const totalPrice = basePrice * quantity + 5000
 
   // Filter destinations
   const filteredDestinations = INITIAL_DESTINATIONS.filter((item) => {
@@ -531,7 +552,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                 Selamat pagi 👋
               </p>
               <h1 className="font-display mt-0.5 text-xl font-bold text-slate-900">
-                Halo, Reza!
+                Halo, {user.name.split(' ')[0]}!
               </h1>
             </div>
             <div className="flex items-center gap-2.5">
@@ -554,7 +575,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               >
                 <img
                   src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
-                  alt="Reza Pratama"
+                  alt={user.name}
                   className="h-10 w-10 rounded-full border-2 border-white object-cover shadow-sm ring-2 ring-sky-500"
                 />
               </button>
@@ -582,19 +603,19 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
           {/* Promo banner */}
           <button
-            onClick={() => openBooking(INITIAL_DESTINATIONS[0])}
+            onClick={() => exploreCategory('Paket Wisata')}
             className="promo-banner mt-4"
           >
             <img
               src="https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=1200&h=800&fit=crop&auto=format"
-              alt="Gili Islands Package"
+              alt="Paket Wisata Lombok"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <span className="promo-scrim" />
             <span className="promo-body">
               <span className="promo-pill">PROMO SPESIAL</span>
               <strong className="font-display mt-2 block text-xl font-bold text-white">
-                Gili Islands Package
+                Paket Wisata Lombok
               </strong>
               <span className="mt-1 block text-xs font-medium text-white/85">
                 Hemat hingga 40% · Berlaku s/d 31 Okt
@@ -621,11 +642,12 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               Temukan sisi terbaik Lombok
             </p>
             <h1 className="font-display text-3xl font-semibold leading-[1.12] text-white sm:text-4xl md:text-6xl">
-              Satu pulau, ribuan cerita untuk dijelajahi.
+              Lombok, lebih dekat.
+              Liburan, lebih mudah.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75">
-              Rencanakan perjalanan personal dengan rekomendasi lokal, tiket
-              resmi, dan AI Guide yang selalu siap membantu.
+              Pilih destinasi, temukan tempat menginap, dan pesan kapal.
+              Satukan semua cerita dalam satu perjalanan bersama SILAQ.
             </p>
             <div className="mt-8 flex max-w-2xl flex-col gap-3 rounded-2xl bg-white p-2 shadow-2xl sm:flex-row">
               <label className="flex flex-1 items-center gap-3 px-3 py-2 cursor-pointer">
@@ -638,7 +660,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     className="mt-1 w-full bg-transparent text-sm text-slate-800 outline-none"
-                    placeholder="Cari pantai, gunung, atau event"
+                    placeholder="Cari destinasi atau wilayah di Lombok"
                   />
                 </span>
               </label>
@@ -748,6 +770,9 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             <ChevronRight className="ml-auto text-slate-300 h-5 w-5" />
           </button>
         </section>
+
+        <TravelShortcuts onSelect={exploreCategory} />
+        <FeaturedBundles onBook={openMarketBooking} onExplore={() => exploreCategory('Paket Wisata')} />
 
         {/* Destinasi terbaik */}
         <section>
@@ -912,184 +937,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
 
   const renderSimplePage = () => {
     if (page === 'Jelajahi') {
-      return (
-        <section className="consumer-container py-8 sm:py-12">
-          <div className="mb-5">
-            <p className="section-eyebrow">Jelajahi Lombok</p>
-            <h2 className="section-title">
-              {query ? `Hasil untuk “${query}”` : 'Semua destinasi'}
-            </h2>
-            <p className="section-description">
-              Tersedia untuk kunjungan {selectedDate}. Pilih destinasi dan pesan tiket resmi.
-            </p>
-          </div>
-
-          {/* Search bar — same builder as the homepage hero */}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault()
-              setNotice(
-                query.trim()
-                  ? `Menampilkan destinasi untuk “${query.trim()}” pada ${selectedDate}.`
-                  : `Menampilkan seluruh destinasi untuk ${selectedDate}.`
-              )
-            }}
-            className="flex w-full flex-col gap-3 rounded-2xl bg-white p-2 shadow-xl sm:flex-row sm:items-center sm:gap-0 sm:shadow-2xl"
-          >
-            <label className="flex flex-1 items-center gap-3 px-3 py-2 cursor-pointer">
-              <Search className="h-5 w-5 text-ocean-500 shrink-0" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Mau ke mana?
-                </span>
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="mt-1 w-full bg-transparent text-sm text-slate-800 outline-none"
-                  placeholder="Cari pantai, gunung, atau event"
-                />
-              </span>
-            </label>
-            <span className="hidden w-px self-stretch bg-slate-200 sm:block" />
-            <button
-              type="button"
-              onClick={() => setDateOpen(true)}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-slate-50 sm:w-44"
-            >
-              <Calendar className="h-5 w-5 text-ocean-500 shrink-0" />
-              <span>
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Tanggal
-                </span>
-                <strong className="mt-1 block text-sm text-slate-800">{selectedDate}</strong>
-              </span>
-            </button>
-            <button
-              type="submit"
-              className="app-button app-button-primary justify-center px-7"
-            >
-              Cari
-            </button>
-          </form>
-
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
-            {['Semua', 'Pantai & Gili', 'Pegunungan', 'Budaya'].map((item) => (
-              <button
-                key={item}
-                onClick={() => setCategory(item)}
-                className={`category-chip ${category === item ? 'category-chip-active' : ''}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <span>
-              <strong className="text-slate-800">{filteredDestinations.length}</strong>{' '}
-              destinasi ditemukan · kuota tiket diperbarui real-time
-            </span>
-            {(query || category !== 'Semua') && (
-              <button
-                onClick={() => {
-                  setQuery('')
-                  setCategory('Semua')
-                }}
-                className="font-bold text-ocean-600 hover:underline"
-              >
-                Reset filter
-              </button>
-            )}
-          </div>
-
-          {filteredDestinations.length === 0 ? (
-            <div className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-ocean-50 text-ocean-600">
-                <Search className="h-5 w-5" />
-              </span>
-              <h3 className="font-display mt-4 text-lg font-semibold text-slate-900">
-                Destinasi tidak ditemukan
-              </h3>
-              <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-slate-500">
-                Coba kata kunci lain seperti “Gili”, “Sembalun”, atau kembalikan ke kategori
-                Semua untuk melihat seluruh destinasi resmi.
-              </p>
-              <button
-                onClick={() => {
-                  setQuery('')
-                  setCategory('Semua')
-                }}
-                className="app-button app-button-primary mt-5"
-              >
-                Tampilkan semua destinasi
-              </button>
-            </div>
-          ) : (
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredDestinations.map((item) => (
-                <div
-                  key={item.id}
-                  className="destination-card flex cursor-pointer flex-col justify-between"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setOverview(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setOverview(item)
-                    }
-                  }}
-                >
-                  <div>
-                    <div className="relative h-44 w-full overflow-hidden bg-slate-100 sm:h-48">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                      <span className="absolute top-3 left-3 rounded-full bg-slate-950/70 px-3 py-1 text-[11px] font-bold text-white">
-                        {item.category}
-                      </span>
-                    </div>
-                    <div className="p-4 sm:p-5">
-                      <p className="text-xs text-slate-400">{item.location}</p>
-                      <h3 className="font-display font-bold text-base text-slate-900 mt-1">
-                        {item.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">
-                        {item.description}
-                      </p>
-                      <span className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-ocean-600">
-                        Lihat overview
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    data-ui
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 p-4 pt-3 sm:p-5 sm:pt-3"
-                  >
-                    <div className="min-w-0">
-                      <span className="block text-[10px] text-slate-400">Mulai dari</span>
-                      <strong className="font-display text-base text-slate-900">
-                        Rp {item.price.toLocaleString('id-ID')}
-                      </strong>
-                      <span className="text-[10px] text-slate-400">/org</span>
-                    </div>
-                    <button
-                      onClick={() => openBooking(item)}
-                      className="app-button app-button-primary"
-                    >
-                      Pesan tiket
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )
+      return <ExploreMarketplace category={marketCategory} onCategory={c => { setMarketCategory(c); setQuery('') }} query={query} onQuery={setQuery} onBook={openMarketBooking} />
     }
 
     if (page === 'Perjalanan') {
@@ -1099,6 +947,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
         : 100
       return (
         <section className="consumer-container py-6 sm:py-12">
+          <BookingLibrary compact onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
               <p className="section-eyebrow">Riwayat</p>
@@ -1387,7 +1236,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
                 ))}
               </div>
               <button
-                onClick={() => setPage('Tiket Saya')}
+                onClick={() => selectBooking('')}
                 className="app-button app-button-primary mt-5 w-full justify-center"
               >
                 <Ticket className="h-4 w-4" />
@@ -1400,101 +1249,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     }
 
     if (page === 'Tiket Saya') {
-      return (
-        <section>
-          {/* Success band */}
-          <div className="ticket-success-band">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/25 text-white">
-              <Check className="h-5 w-5 stroke-3" />
-            </span>
-            <div>
-              <h2 className="font-display text-lg font-bold text-white">
-                Pembayaran Berhasil!
-              </h2>
-              <p className="mt-0.5 text-xs font-medium text-white/85">
-                Order #LMBK-2026-8A2F
-              </p>
-            </div>
-          </div>
-
-          <div className="consumer-container -mt-5 pb-12">
-            <article className="ticket-stub">
-              <div className="ticket-stub-hero">
-                <img
-                  src={selectedDestination.image}
-                  alt={selectedDestination.name}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h3 className="font-display text-xl font-bold text-white">
-                    {selectedDestination.name}
-                  </h3>
-                  <p className="mt-0.5 text-xs font-medium text-white/85">
-                    {selectedDestination.location} · {selectedDate}
-                  </p>
-                </div>
-              </div>
-
-              <div className="ticket-stub-body">
-                <span className="ticket-perf" />
-                <div className="qr-demo mx-auto">
-                  <QrCode className="h-20 w-20 text-ocean-600" />
-                </div>
-                <p className="mt-4 text-center font-mono text-xs font-bold tracking-widest text-slate-500">
-                  LMBK-GILI-8A2F
-                </p>
-                <p className="mt-1 text-center text-[11px] text-slate-400">
-                  Tunjukkan QR ini di pintu masuk
-                </p>
-                <span className="ticket-perf" />
-                <div className="mt-5 grid grid-cols-2 gap-y-5">
-                  {[
-                    ['Nama', 'Reza Pratama'],
-                    ['Tanggal', selectedDate],
-                    ['Tipe', ticketType],
-                    ['Jumlah', `${quantity} Tiket`],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        {label}
-                      </span>
-                      <strong className="font-display mt-1 block text-sm font-bold text-slate-800">
-                        {value}
-                      </strong>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 flex gap-2">
-                  <button
-                    onClick={() => setNotice('E-ticket berhasil disiapkan untuk diunduh.')}
-                    className="app-button app-button-primary flex-1 justify-center py-3"
-                  >
-                    <Download className="h-4 w-4" />
-                    Unduh tiket
-                  </button>
-                  <button
-                    onClick={() =>
-                      setNotice('Tautan e-ticket disalin ke clipboard.')
-                    }
-                    className="app-button app-button-secondary"
-                    aria-label="Bagikan tiket"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            <button
-              onClick={() => setPage('Beranda')}
-              className="app-button app-button-ghost mx-auto mt-6 flex"
-            >
-              Kembali ke beranda
-            </button>
-          </div>
-        </section>
-      )
+      return <BookingLibrary selectedId={bookingId} onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
     }
 
     if (page === 'Kalender') {
@@ -1851,222 +1606,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
     }
 
     if (page === 'Pemesanan') {
-      const visitDates: [string, string][] = [
-        ['Sab', '28 Feb 2026'],
-        ['Min', '1 Mar 2026'],
-        ['Sen', '2 Mar 2026'],
-        ['Sel', '3 Mar 2026'],
-        ['Rab', '4 Mar 2026'],
-      ]
-      return (
-        <section className="pb-12">
-          {/* Destination hero — like BookScreen mockup */}
-          <div className="book-hero">
-            <img
-              src={selectedDestination.image}
-              alt={selectedDestination.name}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <span className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-slate-950/20" />
-            <div className="relative flex items-start justify-between gap-3 px-4 pt-4">
-              <button
-                onClick={() => setPage('Jelajahi')}
-                aria-label="Kembali"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 backdrop-blur-md"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() =>
-                  setSaved((curr) =>
-                    curr.includes(selectedDestination.name)
-                      ? curr.filter((n) => n !== selectedDestination.name)
-                      : [...curr, selectedDestination.name]
-                  )
-                }
-                aria-label="Simpan destinasi"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-700 backdrop-blur-md"
-              >
-                <Heart
-                  className={`h-4 w-4 ${
-                    saved.includes(selectedDestination.name)
-                      ? 'fill-rose-500 text-rose-500'
-                      : ''
-                  }`}
-                />
-              </button>
-            </div>
-            <div className="absolute bottom-4 left-4 right-4">
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold text-white">
-                  Open Now
-                </span>
-                {selectedDestination.discount && (
-                  <span className="rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold text-white">
-                    {selectedDestination.discount}
-                  </span>
-                )}
-              </div>
-              <h2 className="font-display mt-2 text-2xl font-bold text-white">
-                {selectedDestination.name}
-              </h2>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/85">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {selectedDestination.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                  {selectedDestination.rating} ({(selectedDestination.reviewsCount / 1000).toFixed(1)}k)
-                </span>
-              </p>
-            </div>
-          </div>
-
-          <div className="consumer-container relative z-10 -mt-4">
-            {/* Steps */}
-            <div className="booking-steps">
-              {[
-                { label: 'Tiket', state: 'done' },
-                { label: 'Data', state: 'done' },
-                { label: 'Bayar', state: 'current' },
-              ].map((step, index, arr) => (
-                <React.Fragment key={step.label}>
-                  <span
-                    className={`booking-step ${
-                      step.state === 'current' ? 'booking-step-current' : 'booking-step-done'
-                    }`}
-                  >
-                    <span className="booking-step-dot">
-                      {step.state === 'done' ? (
-                        <Check className="h-3 w-3 stroke-3" />
-                      ) : (
-                        index + 1
-                      )}
-                    </span>
-                    {step.label}
-                  </span>
-                  {index < arr.length - 1 && <span className="booking-step-line" />}
-                </React.Fragment>
-              ))}
-            </div>
-
-            {/* Visit date */}
-            <article className="panel-card mt-4">
-              <h3 className="panel-title">Tanggal Kunjungan</h3>
-              <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                {visitDates.map(([dayName, date]) => (
-                  <button
-                    key={date}
-                    onClick={() => {
-                      setSelectedDate(date)
-                      setNotice(`Tanggal kunjungan diubah ke ${date}`)
-                    }}
-                    className={`visit-date-pill ${
-                      selectedDate === date ? 'visit-date-pill-active' : ''
-                    }`}
-                  >
-                    <span className="text-[10px] font-bold">{dayName}</span>
-                    <strong className="font-display mt-1 block text-lg font-bold">
-                      {date.split(' ')[0]}
-                    </strong>
-                  </button>
-                ))}
-              </div>
-            </article>
-
-            {/* Ticket type */}
-            <article className="panel-card mt-4">
-              <h3 className="panel-title">Jenis Tiket</h3>
-              <div className="mt-4 space-y-3">
-                {selectedDestination.ticketTiers.map((tier) => (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => setTicketType(tier.name)}
-                    className={`tier-option ${
-                      ticketType === tier.name ? 'tier-option-active' : ''
-                    }`}
-                  >
-                    <span
-                      className={`tier-radio ${
-                        ticketType === tier.name ? 'tier-radio-active' : ''
-                      }`}
-                    />
-                    <span className="min-w-0 flex-1 text-left">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <strong className="font-display text-sm font-bold text-slate-800">
-                          {tier.name}
-                        </strong>
-                        {tier.badge && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase text-amber-700">
-                            {tier.badge}
-                          </span>
-                        )}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-slate-400">
-                        {tier.description}
-                      </span>
-                    </span>
-                    <strong className="font-display shrink-0 text-sm font-bold text-sky-600">
-                      Rp {(tier.price / 1000).toFixed(0)}K
-                    </strong>
-                  </button>
-                ))}
-              </div>
-            </article>
-
-            {/* Quantity + summary */}
-            <article className="panel-card mt-4">
-              <h3 className="panel-title">Jumlah Pengunjung</h3>
-              <div className="mt-4 flex items-center gap-4">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="quantity-button"
-                >
-                  -
-                </button>
-                <strong className="w-8 text-center text-lg font-bold">{quantity}</strong>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="quantity-button quantity-button-active"
-                >
-                  +
-                </button>
-                <span className="text-xs text-slate-400">Maks. 10 tiket</span>
-              </div>
-
-              <div className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>
-                    {ticketType} × {quantity}
-                  </span>
-                  <strong>Rp {(basePrice * quantity).toLocaleString('id-ID')}</strong>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Biaya Layanan & Asuransi</span>
-                  <strong>Rp 5.000</strong>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-700">Total Pembayaran</span>
-                <strong className="font-display text-lg font-bold text-sky-600">
-                  Rp {totalPrice.toLocaleString('id-ID')}
-                </strong>
-              </div>
-              <button
-                onClick={() => {
-                  setNotice('Pembayaran berhasil! Tiket digital telah diterbitkan.')
-                  setPage('Tiket Saya')
-                }}
-                className="app-button app-button-primary mt-5 w-full justify-center py-3.5"
-              >
-                Bayar Sekarang
-              </button>
-            </article>
-          </div>
-        </section>
-      )
+      return marketProduct ? <BookingCheckout key={marketProduct.id} product={marketProduct} initialDate={travelDate} onBack={() => exploreCategory(marketProduct.category)} onComplete={booking => selectBooking(booking.id)} /> : <BookingLibrary onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
     }
 
     if (page === 'Karbon') {
@@ -2368,14 +1908,14 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
         {
           icon: <CreditCard className="h-4 w-4 text-sky-500" />,
           title: 'Metode Pembayaran',
-          subtitle: 'GoPay, BCA, QRIS',
-          action: () => setNotice('Metode pembayaran demo: QRIS, GoPay, dan BCA aktif.'),
+          subtitle: 'QRIS & Virtual Account',
+          action: () => setNotice('Pilih QRIS atau Virtual Account pada halaman pembayaran. Status diverifikasi server melalui penyedia pembayaran.'),
         },
         {
           icon: <Ticket className="h-4 w-4 text-slate-500" />,
           title: 'Riwayat Transaksi',
-          subtitle: '12 transaksi',
-          action: () => setPage('Tiket Saya'),
+          subtitle: 'Lihat seluruh pesanan akun ini',
+          action: () => selectBooking(''),
         },
         {
           icon: <Leaf className="h-4 w-4 text-emerald-500" />,
@@ -2417,15 +1957,15 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             <div className="relative mx-auto w-fit">
               <img
                 src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop&auto=format"
-                alt="Reza Pratama"
+                alt={user.name}
                 className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-lg"
               />
               <span className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500" />
             </div>
             <h2 className="font-display mt-3 text-xl font-bold text-white">
-              Reza Pratama
+              {user.name}
             </h2>
-            <p className="mt-0.5 text-xs text-white/80">reza.pratama@email.com</p>
+            <p className="mt-0.5 text-xs text-white/80">{user.email}</p>
             <span className="mt-3 inline-flex rounded-full bg-white/25 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
               🌱 Eco-Warrior Level 2
             </span>
@@ -2514,7 +2054,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             {nav.map(([label]) => (
               <button
                 key={label}
-                onClick={() => setPage(label)}
+                onClick={() => { if (label === 'Tiket Saya') setBookingId(''); setPage(label) }}
                 className={`consumer-nav ${
                   page === label ? 'consumer-nav-active' : ''
                 }`}
@@ -2528,12 +2068,12 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
             <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-left">
                 <img
                   src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
-                  alt="Reza Pratama"
+                  alt={user.name}
                   className="h-8 w-8 rounded-full object-cover"
                 />
                 <span className="hidden sm:block">
                   <strong className="block text-xs text-slate-800">
-                    Reza Pratama
+                    {user.name}
                   </strong>
                   <span className="text-[10px] text-slate-400">Wisatawan</span>
                 </span>
@@ -2559,6 +2099,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
       )}
 
       {/* Main Content Area */}
+      <PaymentEnvironmentNotice />
       <main className="consumer-main">
         {page === 'Beranda' ? renderHome() : renderSimplePage()}
       </main>
@@ -2571,7 +2112,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
           return (
             <button
               key={label}
-              onClick={() => setPage(label)}
+              onClick={() => { if (label === 'Tiket Saya') setBookingId(''); setPage(label) }}
               className={isActive ? 'is-active' : ''}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -2583,7 +2124,7 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
       </nav>
 
       {/* Floating AI FAB — hidden while the assistant is open or a toast is showing */}
-      {page !== 'AI Guide' && !notice && (
+      {!['AI Guide', 'Pemesanan', 'Tiket Saya'].includes(page) && !notice && (
         <button
           onClick={() => setPage('AI Guide')}
           className="ai-fab"
@@ -2607,21 +2148,21 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               </button>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3">
-              {['28 Feb 2026', '1 Mar 2026', '2 Mar 2026', '3 Mar 2026', '4 Mar 2026', '5 Mar 2026'].map(
+              {Array.from({ length: 6 }, (_, i) => addDays(todayISO(), i)).map(
                 (d) => (
                   <button
                     key={d}
                     onClick={() => {
-                      setSelectedDate(d)
+                      setTravelDate(d)
                       setDateOpen(false)
-                      setNotice(`Tanggal kunjungan diubah ke ${d}`)
+                      setNotice(`Tanggal kunjungan diubah ke ${dateLabel(d)}`)
                     }}
                     className={`date-option ${
-                      selectedDate === d ? 'date-option-active' : ''
+                      travelDate === d ? 'date-option-active' : ''
                     }`}
                   >
-                    <strong>{d.split(' ')[0]} {d.split(' ')[1]}</strong>
-                    <small>{d.split(' ')[2]}</small>
+                    <strong>{dateLabel(d).split(' ').slice(0, 2).join(' ')}</strong>
+                    <small>{d.slice(0, 4)}</small>
                   </button>
                 )
               )}
@@ -2684,6 +2225,9 @@ export default function ConsumerApp({ onLogout }: ConsumerAppProps) {
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 {overview.description}
               </p>
+              {MARKET_PRODUCTS.find((product) => product.id === overview.id) && (
+                <ItineraryOverview product={MARKET_PRODUCTS.find((product) => product.id === overview.id)!} />
+              )}
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 {overview.highlights.map((item) => (

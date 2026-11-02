@@ -27,6 +27,9 @@ import {
 } from 'lucide-react'
 import { INITIAL_DESTINATIONS, INITIAL_TRANSACTIONS } from '@/lib/smart-tourism-data'
 import { Transaction, TicketTier, Pengaduan, PengaduanStatus } from '@/types/smart-tourism'
+import TravelOperations from './TravelOperations'
+import { SessionUser } from '@/types/auth'
+import VoucherScanner from './VoucherScanner'
 import {
   usePengaduan,
   updatePengaduanStatus,
@@ -37,6 +40,7 @@ import {
 
 interface AdminDashboardProps {
   onLogout: () => void
+  user: SessionUser
 }
 
 const statusChipClass = (status: Transaction['status']) => {
@@ -46,31 +50,23 @@ const statusChipClass = (status: Transaction['status']) => {
   return 'table-status table-status-danger'
 }
 
-export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
+export default function AdminDashboard({ onLogout, user }: AdminDashboardProps) {
   const [activeNav, setActiveNav] = useState('Ringkasan')
+  const isLivePage = ['Layanan & Pesanan', 'Validasi QR & Scanner'].includes(activeNav)
   const [mobileMenu, setMobileMenu] = useState(false)
   const [notice, setNotice] = useState('')
 
   // Live venue operations state (Gili Trawangan - BlueWater Lombok)
   const [gateOpen, setGateOpen] = useState(true)
-  const [currentOccupancy, setCurrentOccupancy] = useState(684)
+  const currentOccupancy = 684
   const maxCapacity = 1000
   const occupancyRate = Math.round((currentOccupancy / maxCapacity) * 100)
-
-  // Scanner state
-  const [scanInputCode, setScanInputCode] = useState('')
-  const [scanResult, setScanResult] = useState<{
-    status: 'success' | 'warning' | 'error' | null
-    title?: string
-    details?: string
-    ticketData?: any
-  }>({ status: null })
 
   // Ticket tier quota state
   const [ticketTiers, setTicketTiers] = useState<TicketTier[]>(INITIAL_DESTINATIONS[0].ticketTiers)
 
   // Transaction list state
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS)
+  const transactions = INITIAL_TRANSACTIONS
   const [trxFilter, setTrxFilter] = useState<'Semua' | 'Check-in' | 'Berhasil' | 'Diproses'>('Semua')
 
   // POS cashier state
@@ -144,6 +140,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const navItems = [
     { label: 'Ringkasan', icon: LayoutDashboard },
+    { label: 'Layanan & Pesanan', icon: Receipt },
     { label: 'Validasi QR & Scanner', icon: QrCode },
     { label: 'Tiket & Harga', icon: Wallet },
     { label: 'Kasir POS', icon: Receipt },
@@ -155,62 +152,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const filteredTransactions =
     trxFilter === 'Semua' ? transactions : transactions.filter((t) => t.status === trxFilter)
 
-  // QR scanner simulation
-  const handleSimulateScan = (code: string) => {
-    setScanInputCode(code)
-    if (code === 'GT-1048' || code === 'LMBK-GT-9082') {
-      setScanResult({
-        status: 'success',
-        title: 'Validasi berhasil — tiket sah',
-        details: '2 tiket VIP Fast Boat terverifikasi. Gelang VIP dapat diserahkan.',
-        ticketData: { name: 'Nadya Putri', code: 'GT-1048', type: 'VIP Fast Boat', qty: 2 }
-      })
-      setCurrentOccupancy((prev) => Math.min(maxCapacity, prev + 2))
-      setNotice('Tiket GT-1048 berhasil divalidasi dan tercatat di gate.')
-    } else if (code === 'GT-1047' || code === 'LMBK-GT-8819') {
-      setScanResult({
-        status: 'warning',
-        title: 'Tiket sudah pernah check-in',
-        details: 'Tiket ini telah divalidasi sebelumnya pada 16:30 WITA di Gate 2.',
-        ticketData: { name: 'Rizky Ananda', code: 'GT-1047' }
-      })
-      setNotice('Peringatan: Tiket GT-1047 sudah pernah dipakai check-in.')
-    } else {
-      setScanResult({
-        status: 'error',
-        title: 'Kode tiket tidak ditemukan',
-        details: 'Pastikan QR berasal dari platform resmi SILAQ atau periksa kembali nomor pemesanan.'
-      })
-      setNotice('Validasi gagal: kode tiket tidak terdaftar.')
-    }
-  }
-
-  // Handle POS issue ticket
   const handleIssuePosTicket = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!posCustomer.trim()) {
-      setNotice('Masukkan nama pengunjung terlebih dahulu.')
-      return
-    }
-    const selected = ticketTiers.find((t) => t.name === posTier) || ticketTiers[0]
-    const newTrx: Transaction = {
-      id: `POS-${Math.floor(1000 + Math.random() * 9000)}`,
-      customerName: posCustomer,
-      destination: 'Gili Trawangan',
-      partnerName: 'BlueWater Express Lombok',
-      ticketType: selected.name,
-      quantity: posQty,
-      totalAmount: selected.price * posQty,
-      status: 'Check-in',
-      timestamp: 'Hari ini, Baru saja',
-      paymentMethod: posPayment,
-      channel: 'Loket Destinasi (POS)',
-      qrCode: `LMBK-POS-${Math.floor(1000 + Math.random() * 9000)}`
-    }
-    setTransactions([newTrx, ...transactions])
-    setCurrentOccupancy((prev) => Math.min(maxCapacity, prev + posQty))
-    setPosCustomer('')
-    setNotice(`Tiket kasir ${newTrx.id} berhasil diterbitkan untuk ${newTrx.customerName}.`)
+    setNotice('Modul kasir masih berupa contoh. Gunakan alur pemesanan dan pembayaran server untuk menerbitkan voucher yang valid.')
   }
 
   return (
@@ -278,7 +222,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
               <User className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">Adi Saputra</p>
+              <p className="truncate text-sm font-semibold text-white">{user.name}</p>
               <p className="truncate text-xs text-slate-400">Admin Mitra</p>
             </div>
             <button
@@ -299,16 +243,18 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             onClick={() => setMobileMenu(!mobileMenu)}
             className="admin-icon-button min-[1101px]:hidden"
             aria-label="Buka menu admin"
+            aria-expanded={mobileMenu}
           >
             <Menu className="h-4 w-4" />
           </button>
+          <span className="admin-mobile-title min-[1101px]:hidden">{activeNav}</span>
           <div className="admin-search">
             <Search className="h-4 w-4" />
             <span>Cari data, tiket, atau transaksi</span>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-sm font-medium text-slate-600 sm:block">
-              Februari 2026
+              {isLivePage ? 'Data pesanan server' : 'Februari 2026 · contoh'}
             </span>
             <button
               onClick={() => setNotice('Semua gerbang operasional dalam kondisi sinkron.')}
@@ -335,7 +281,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   : `Kelola modul ${activeNav.toLowerCase()} dengan akses Admin Mitra.`}
               </p>
             </div>
-            <div className="page-actions">
+            {!isLivePage && <div className="page-actions">
               <button
                 type="button"
                 onClick={() => setNotice('Rentang laporan aktif: 1–28 Februari 2026.')}
@@ -352,7 +298,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <Download className="h-4 w-4" />
                 Ekspor laporan
               </button>
-            </div>
+            </div>}
           </div>
 
           {notice && (
@@ -362,6 +308,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             </div>
           )}
 
+          {activeNav === 'Layanan & Pesanan' && <TravelOperations />}
+          {!['Layanan & Pesanan', 'Validasi QR & Scanner'].includes(activeNav) && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Untuk pesanan dan validasi yang tersimpan di server, gunakan Layanan & Pesanan atau Validasi Voucher.</p>}
           {/* TAB 1: RINGKASAN OPERASIONAL */}
           {activeNav === 'Ringkasan' && (
             <div className="space-y-5">
@@ -438,7 +386,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </div>
 
                   <div
-                    className="flex h-44 items-end gap-2 border-b border-slate-200 pb-2" // taste-skill-ignore
+                    className="hourly-chart flex h-44 items-end gap-2 border-b border-slate-200 pb-2"
                   >
                     {[
                       { h: '08:00', val: 45 },
@@ -462,13 +410,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             style={{ height: `${(item.val / 120) * 100}%` }}
                           />
                         </div>
-                        <span className="num text-[10px] text-slate-500">{item.h}</span>
+                        <span className="num text-[10px] text-slate-500"><span className="sm:hidden">{item.h.slice(0, 2)}</span><span className="hidden sm:inline">{item.h}</span></span>
                       </div>
                     ))}
                   </div>
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-4">
+                    <span className="flex flex-wrap items-center gap-2 sm:gap-4">
                       <span className="flex items-center gap-1.5">
                         <span className="h-2.5 w-2.5 bg-ocean-400" />
                         Kunjungan reguler
@@ -533,7 +481,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <h2 className="panel-title">Transaksi &amp; check-in terkini</h2>
                     <p className="panel-subtitle">Pembaruan gerbang dermaga real-time</p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="transaction-filters flex min-w-0 flex-wrap items-center gap-3">
                     <div className="segmented">
                       {(['Semua', 'Check-in', 'Berhasil', 'Diproses'] as const).map((f) => (
                         <button
@@ -597,168 +545,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             </div>
           )}
 
-          {/* TAB 2: VALIDASI QR & SCANNER GERBANG */}
-          {activeNav === 'Validasi QR & Scanner' && (
-            <div className="grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
-              <article className="panel-card space-y-5">
-                <div>
-                  <h2 className="panel-title">Pemindai QR code tiket</h2>
-                  <p className="panel-subtitle">
-                    Arahkan kamera ke QR tiket wisatawan atau masukkan kode booking
-                  </p>
-                </div>
+          {activeNav === 'Validasi QR & Scanner' && <VoucherScanner />}
 
-                <div className="relative h-60 w-full overflow-hidden rounded-md bg-slate-950 flex items-center justify-center">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center opacity-25"
-                    style={{
-                      backgroundImage: `url('https://images.unsplash.com/photo-1530711338425-2d21c46b32a5?w=600&fit=crop')`
-                    }}
-                  />
-                  <div className="relative z-10 flex h-40 w-40 items-center justify-center border border-dashed border-ocean-400/80">
-                    <div className="absolute left-0 top-0 h-5 w-5 border-l-2 border-t-2 border-ocean-400" /* taste-skill-ignore */ />
-                    <div className="absolute right-0 top-0 h-5 w-5 border-r-2 border-t-2 border-ocean-400" /* taste-skill-ignore */ />
-                    <div className="absolute bottom-0 left-0 h-5 w-5 border-b-2 border-l-2 border-ocean-400" /* taste-skill-ignore */ />
-                    <div className="absolute bottom-0 right-0 h-5 w-5 border-b-2 border-r-2 border-ocean-400" /* taste-skill-ignore */ />
-                    <div className="scanline absolute left-3 right-3 h-px bg-ocean-400" /* taste-skill-ignore */ />
-                    <p className="mt-16 text-[11px] font-medium text-white/70">
-                      Arahkan kamera ke QR
-                    </p>
-                  </div>
-                  <span className="absolute bottom-3 left-4 text-[11px] text-white/50">
-                    Camera Hub Bangsal 1080p · Sensor ready
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Masukkan kode booking (cth: GT-1048, GT-1047)"
-                      value={scanInputCode}
-                      onChange={(e) => setScanInputCode(e.target.value)}
-                      className="field-input pl-9"
-                    />
-                  </div>
-                  <button
-                    onClick={() => handleSimulateScan(scanInputCode.trim())}
-                    className="app-button app-button-primary"
-                  >
-                    Verifikasi
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-2">
-                  <span className="text-xs font-medium text-slate-500">Tes langsung:</span>
-                  <button
-                    onClick={() => handleSimulateScan('GT-1048')}
-                    className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Tiket valid (GT-1048)
-                  </button>
-                  <button
-                    onClick={() => handleSimulateScan('GT-1047')}
-                    className="flex items-center gap-1.5 rounded-md border border-amber-200 bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
-                  >
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Sudah check-in (GT-1047)
-                  </button>
-                  <button
-                    onClick={() => handleSimulateScan('GT-INVALID')}
-                    className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50"
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    Kode tidak sah
-                  </button>
-                </div>
-
-                {scanResult.status && (
-                  <div
-                    className={`rounded-md border p-4 ${
-                      scanResult.status === 'success'
-                        ? 'border-emerald-200 bg-emerald-50'
-                        : scanResult.status === 'warning'
-                        ? 'border-amber-200 bg-amber-50'
-                        : 'border-rose-200 bg-rose-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {scanResult.status === 'success' && (
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-                      )}
-                      {scanResult.status === 'warning' && (
-                        <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600" />
-                      )}
-                      {scanResult.status === 'error' && (
-                        <RotateCcw className="mt-0.5 h-5 w-5 text-rose-600" />
-                      )}
-                      <div>
-                        <strong className="block text-sm text-slate-900">
-                          {scanResult.title}
-                        </strong>
-                        <p className="mt-1 text-xs leading-5 text-slate-600">
-                          {scanResult.details}
-                        </p>
-                        {scanResult.ticketData && (
-                          <div className="mt-3 grid grid-cols-2 gap-2 rounded-md border border-white bg-white p-3 text-xs">
-                            <div>
-                              <span className="block text-slate-400">Pengunjung</span>
-                              <strong className="text-slate-800">
-                                {scanResult.ticketData.name}
-                              </strong>
-                            </div>
-                            <div>
-                              <span className="block text-slate-400">Kode</span>
-                              <strong className="text-ocean-700 num">
-                                {scanResult.ticketData.code}
-                              </strong>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </article>
-
-              <article className="panel-card h-fit">
-                <div className="panel-head">
-                  <div>
-                    <h3 className="panel-title">Log pengunjung masuk dermaga</h3>
-                    <p className="panel-subtitle">10 menit terakhir</p>
-                  </div>
-                </div>
-                <div>
-                  {[
-                    { code: 'GT-1048', name: 'Nadya Putri', pass: 'VIP Fast Boat (2 org)', time: 'Baru saja' },
-                    { code: 'GT-1045', name: 'Made Surya', pass: 'Reguler Pass (1 org)', time: '4 mnt lalu' },
-                    { code: 'GT-1044', name: 'Kevin O’Connor', pass: 'Weekend Pass (3 org)', time: '12 mnt lalu' },
-                    { code: 'GT-1042', name: 'Dewi Lestari', pass: 'Reguler Pass (2 org)', time: '19 mnt lalu' }
-                  ].map((item) => (
-                    <div
-                      key={item.code}
-                      className="flex items-center justify-between border-b border-slate-100 py-3 last:border-b-0" // taste-skill-ignore
-                    >
-                      <div>
-                        <strong className="block text-sm text-slate-800">{item.name}</strong>
-                        <span className="text-xs text-slate-500">{item.pass}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="num block text-xs font-semibold text-ocean-700">
-                          {item.code}
-                        </span>
-                        <span className="num text-[11px] text-slate-400">{item.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            </div>
-          )}
-
-          {/* TAB 3: TIKET & HARGA */}
           {activeNav === 'Tiket & Harga' && (
             <article className="panel-card p-0 overflow-hidden">
               <div className="px-5 py-4">

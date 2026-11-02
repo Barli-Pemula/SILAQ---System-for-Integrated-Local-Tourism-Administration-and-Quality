@@ -1,14 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; background: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
+body { margin: 0; min-width: 320px; background: #f8fafc; color: #0f172a; font-family: var(--font-sans), 'Inter', sans-serif; }
 button, input { font: inherit; }
 button { cursor: pointer; }
-.font-display { font-family: 'Poppins', sans-serif; }
+.font-display { font-family: var(--font-display), 'Poppins', sans-serif; }
 
 .logo-mark {
   display: flex; height: 2.75rem; width: 2.75rem; align-items: center; justify-content: center;

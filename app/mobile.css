@@ -1,0 +1,385 @@
+/* Phone layout refinements shared by all three portals. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .consumer-header .logo-mark + div,
+  .consumer-header .consumer-container > div:last-child > div > span {
+    display: none;
+  }
+  .consumer-nav {
+    padding: 0.6rem 0.55rem;
+    font-size: 11px;
+  }
+}
+@media (max-width: 767px) {
+  .consumer-main,
+  .admin-main,
+  .travel-panel,
+  .panel-card,
+  .page-heading > div,
+  .checkout-details,
+  .travel-card-body {
+    min-width: 0;
+  }
+  .consumer-container {
+    width: calc(100% - 1.5rem);
+  }
+  .input-wrap input,
+  .field-input,
+  .travel-field input,
+  .travel-field select,
+  .travel-search input,
+  .travel-search-row select,
+  .chat-composer input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+  .input-wrap,
+  .field-input,
+  .travel-field input,
+  .travel-field select {
+    min-height: 48px;
+  }
+  .app-button,
+  .travel-primary,
+  .travel-secondary,
+  .google-button {
+    min-height: 44px;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .role-card {
+    min-height: 92px;
+  }
+  .role-card .font-display {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .login-mobile-hero {
+    height: 9.5rem;
+  }
+  .login-mobile-hero h1 {
+    display: none;
+  }
+  .login-form-card {
+    padding: 1.25rem 1rem 1.5rem !important;
+  }
+  .login-form-card > h2 {
+    font-size: 1.5rem;
+  }
+  .input-wrap > button {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .consumer-mobile-nav {
+    height: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .consumer-mobile-nav button {
+    font-size: 10px;
+    line-height: 1.4;
+    gap: 0.35rem;
+  }
+  .consumer-main {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+  .ai-fab {
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+    right: 0.85rem;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+  .ai-fab svg {
+    width: 20px;
+    height: 20px;
+  }
+  .toast-message {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+  .travel-tabs {
+    gap: 0.5rem;
+    scroll-padding-inline: 0.25rem;
+  }
+  .travel-tabs button {
+    min-height: 48px;
+    padding: 0.85rem 0.35rem;
+    font-size: 12px;
+  }
+  .travel-tabs button[aria-selected='true'] {
+    background: #f0f9ff;
+    border-radius: 0.6rem 0.6rem 0 0;
+  }
+  .travel-services strong {
+    min-height: 2.7em;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .travel-services button {
+    justify-content: flex-start;
+    gap: 0.55rem;
+  }
+  .travel-description {
+    font-size: 13px;
+    line-height: 1.85;
+  }
+  .travel-location,
+  .travel-help,
+  .travel-demo-note {
+    font-size: 12px;
+  }
+  .travel-page {
+    padding-top: 1.25rem;
+  }
+  .travel-explore-head h1 {
+    font-size: clamp(1.5rem, 6.1vw, 1.9rem);
+  }
+  .travel-explore-head > p:last-child {
+    display: none;
+  }
+  .travel-panel,
+  .panel-card {
+    padding: 1rem;
+  }
+  .travel-card-footer {
+    gap: 0.6rem;
+  }
+  .travel-card-footer strong {
+    font-size: 18px;
+  }
+  .booking-success > span {
+    flex-basis: 100%;
+    margin-left: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .booking-list-item small,
+  .ops-order .section-eyebrow,
+  .travel-voucher code,
+  .itinerary-stop a,
+  .travel-info {
+    overflow-wrap: anywhere;
+  }
+  .booking-list-price {
+    margin-left: 0;
+    gap: 0.75rem;
+  }
+  .summary-lines p > span {
+    min-width: 0;
+  }
+  .summary-total {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .itinerary-stop {
+    gap: 0.75rem;
+  }
+  .itinerary-stop > div {
+    min-width: 0;
+  }
+  .itinerary-stop div > p:not(.timeline-time) {
+    font-size: 12px;
+  }
+  .itinerary-stop a {
+    font-size: 11px;
+  }
+  .travel-steps {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .travel-steps li {
+    font-size: 12px;
+  }
+  .travel-search-row select {
+    min-height: 44px;
+  }
+  .travel-info {
+    align-items: flex-start;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .ops-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ops-metrics .travel-panel {
+    padding: 0.85rem;
+  }
+  .ops-metrics .travel-panel > span {
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  .ops-metrics .travel-panel > strong {
+    font-size: clamp(1rem, 4.7vw, 1.4rem);
+  }
+  .ops-order .travel-help {
+    overflow-wrap: anywhere;
+  }
+  .admin-main > div {
+    padding: 1rem;
+  }
+  .admin-header {
+    padding: 0.5rem 0.85rem;
+    min-height: 60px;
+    height: auto;
+  }
+  .admin-mobile-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #23483e;
+  }
+  .admin-icon-button,
+  .consumer-menu-trigger {
+    height: 44px;
+    width: 44px;
+    flex-shrink: 0;
+  }
+  .admin-sidebar {
+    width: min(20rem, 88vw);
+  }
+  .sidebar-item {
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .sidebar-context {
+    padding-bottom: 0.75rem;
+  }
+  .page-heading {
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+  .page-heading h1 {
+    font-size: 1.35rem;
+  }
+  .page-heading p {
+    font-size: 12px;
+    line-height: 1.85;
+  }
+  .page-actions {
+    width: 100%;
+  }
+  .page-actions .app-button {
+    flex: 1;
+  }
+  .transaction-filters {
+    width: 100%;
+  }
+  .transaction-filters .segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    max-width: 100%;
+  }
+  .transaction-filters .segmented button {
+    min-height: 44px;
+  }
+  .transaction-filters > .app-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .hourly-chart {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+  .hourly-chart > .group {
+    min-width: 0;
+  }
+  .overflow-x-auto {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .overflow-x-auto:has(> .data-table)::before {
+    content: 'Geser tabel untuk melihat kolom lainnya';
+    display: block;
+    position: sticky;
+    left: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 11px;
+    color: #64796c;
+    background: #f3f7f3;
+  }
+  .chat-composer {
+    gap: 0.5rem;
+  }
+  .chat-composer input {
+    min-width: 0;
+  }
+  .chat-composer button {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .chat-bubble {
+    font-size: 13px;
+    line-height: 1.9;
+    overflow-wrap: anywhere;
+  }
+  .chat-scroll {
+    height: clamp(17rem, 47svh, 27rem);
+  }
+  .chat-suggestions {
+    gap: 0.5rem;
+  }
+  .chat-prompt {
+    min-height: 40px;
+  }
+  .modal-backdrop {
+    padding: 1rem 0.75rem;
+    align-items: center;
+  }
+  .calendar-modal {
+    width: 100%;
+    max-height: 85dvh;
+    overflow-y: auto;
+  }
+  .profile-head {
+    padding-top: 1.5rem;
+  }
+  .profile-head > p {
+    overflow-wrap: anywhere;
+    padding-inline: 0.75rem;
+  }
+  .calendar-day {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 359px) {
+  .consumer-container {
+    width: calc(100% - 1rem);
+  }
+  .travel-panel,
+  .panel-card {
+    padding: 0.85rem;
+  }
+  .travel-services strong {
+    font-size: 10px;
+  }
+  .travel-card-body {
+    padding: 1rem;
+  }
+  .ops-metrics {
+    gap: 0.5rem;
+  }
+  .travel-primary,
+  .travel-secondary {
+    padding: 0.65rem 0.8rem;
+    font-size: 12px;
+  }
+  .travel-section-heading {
+    flex-wrap: wrap;
+  }
+}

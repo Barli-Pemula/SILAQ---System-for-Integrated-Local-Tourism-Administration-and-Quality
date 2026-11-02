@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import { Poppins, Inter } from 'next/font/google'
 import './globals.css'
+import './travel.css'
+import './mobile.css'
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -25,7 +27,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'SILAQ — System for Integrated Local Tourism Administration and Quality',
   description:
-    'SILAQ (System for Integrated Local Tourism Administration and Quality) adalah platform pariwisata terpadu untuk wisatawan, pengelola destinasi wisata, dan Otoritas Pariwisata Provinsi NTB.',
+    'Jelajahi Lombok bersama SILAQ. Pesan paket wisata, tiket destinasi, hotel, dan kapal; temukan kuliner lokal serta itinerary dalam satu platform.',
 }
 
 export default function RootLayout({

@@ -4,24 +4,45 @@
   "description": "LombokTrip — Smart Tourism & E-Ticketing Ecosystem Platform (Next.js)",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/dev.mjs",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint"
+    "typecheck": "tsc --noEmit",
+    "setup": "node --conditions=react-server --import tsx scripts/setup.ts",
+    "test:server": "node --conditions=react-server --import tsx --test tests/booking-server.test.ts",
+    "test:browser": "node scripts/test-browser.mjs",
+    "setup:gilang": "node --conditions=react-server --import tsx scripts/create-gilang-accounts.ts",
+    "screenshots": "node scripts/capture-pages.mjs",
+    "screenshots:audit": "node scripts/capture-pages.mjs --audit"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.13",
+    "@vercel/functions": "3.6.1",
     "lucide-react": "^1.16.0",
-    "next": "^16.1.6",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "next": "16.4.3",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
+    "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.14",
+    "jsqr": "^1.4.0",
+    "playwright": "^1.64.1",
+    "pngjs": "^7.0.0",
     "postcss": "^8.4.27",
+    "prettier": "^3.9.10",
     "tailwindcss": "^3.3.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
