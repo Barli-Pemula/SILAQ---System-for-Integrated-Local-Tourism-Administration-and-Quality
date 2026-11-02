@@ -81,6 +81,7 @@ async function main() {
           'utf8'
         )
         await context.addInitScript((saved) => {
+          if (!['http:', 'https:'].includes(location.protocol)) return
           sessionStorage.removeItem('silaq.presentation.session.v1')
           if (!localStorage.getItem('silaq.presentation.v1'))
             localStorage.setItem('silaq.presentation.v1', saved)
