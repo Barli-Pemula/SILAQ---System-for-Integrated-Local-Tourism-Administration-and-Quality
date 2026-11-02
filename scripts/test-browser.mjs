@@ -15,7 +15,8 @@ const env = {
   LOCAL_DATABASE: 'true',
   LOCAL_DATABASE_PATH: directory,
   DATABASE_URL: '',
-  APP_URL: base,
+  // Regression: browsing a preview alias must work even with a different APP_URL.
+  APP_URL: 'http://canonical.example.test',
   PAYMENT_MODE: 'demo',
   ALLOW_DEMO_PAYMENTS: 'true',
   PROVISION_EMAIL: email,

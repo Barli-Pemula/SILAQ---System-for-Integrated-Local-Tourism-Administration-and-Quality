@@ -20,7 +20,8 @@ const env = {
   DEMO_LOGIN_ENABLED: 'true',
   DEMO_LOGIN_PASSWORD:
     process.env.DEMO_LOGIN_PASSWORD || randomBytes(15).toString('base64url'),
-  APP_URL: `http://127.0.0.1:${port}`,
+  // Exercise real Gilang logins through an alias different from the canonical URL.
+  APP_URL: 'http://canonical.example.test',
   BASE_URL: `http://127.0.0.1:${port}`,
   CAPTURE_FIXTURE: 'true',
 }

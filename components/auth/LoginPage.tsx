@@ -282,36 +282,6 @@ export default function LoginPage({
             ))}
           </div>
 
-          <div className="mb-5 text-xs leading-6 text-slate-500">
-            <p>
-              {!registering
-                ? `Akun ${template.name} otomatis terisi setiap halaman login dibuka. Pilih peran, lalu tekan Masuk. Untuk akun lain, ubah kolom di bawah atau pilih Gunakan akun lain.`
-                : 'Masuk menggunakan akunmu. Hak akses wisatawan, mitra, dan pengelola diverifikasi oleh server.'}
-            </p>
-            {!registering && (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (
-                    email === template.emails[role] &&
-                    password === template.password
-                  ) {
-                    edited.current = true
-                    setEmail('')
-                    setPassword('')
-                    setLoginMessage('')
-                  } else handleRoleSelect(role)
-                }}
-                className="mt-1 min-h-11 font-semibold text-ocean-600 hover:underline"
-              >
-                {email === template.emails[role] &&
-                password === template.password
-                  ? 'Gunakan akun lain'
-                  : 'Gunakan template Gilang'}
-              </button>
-            )}
-          </div>
           <button
             type="button"
             disabled={busy}

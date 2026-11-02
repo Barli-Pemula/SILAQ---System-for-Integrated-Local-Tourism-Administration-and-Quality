@@ -299,9 +299,7 @@ async function main() {
           .getByLabel('Alamat email', { exact: true })
           .fill('edited@example.test')
         await page.locator('input[type=password]').fill('Edited-password-123')
-        await page
-          .getByRole('button', { name: 'Gunakan template Gilang', exact: true })
-          .click()
+        await chooseRole(role)
         assert.equal(
           await page.getByLabel('Alamat email', { exact: true }).inputValue(),
           EMAIL[role]

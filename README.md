@@ -25,7 +25,7 @@ Buka `http://localhost:3000`. Tanpa `DATABASE_URL`, perintah dev menggunakan Pos
 
 Untuk akun Gilang pada ketiga portal, jalankan `npm run setup:gilang`. Perintah menampilkan password awal hanya untuk akun yang baru dibuat; akun yang sudah ada tidak diubah. Untuk memilih password awal, isi `GILANG_INITIAL_PASSWORD` sebelum menjalankannya.
 
-Form login langsung menampilkan template publik Gilang sejak pertama muncul, tanpa menekan tombol atau mengaktifkan environment autofill. Peran awal adalah Wisatawan; memilih Admin Mitra atau SuperAdmin langsung mengganti isian sesuai peran. **Gunakan akun lain** mengosongkan kolom; akun lain juga bisa diketik langsung. Isian yang sedang diedit tidak ditimpa oleh respons konfigurasi. Membuka ulang halaman login kembali menampilkan Gilang.
+Form login langsung menampilkan template publik Gilang sejak pertama muncul, tanpa menekan tombol atau mengaktifkan environment autofill. Peran awal adalah Wisatawan; memilih Admin Mitra atau SuperAdmin langsung mengganti isian sesuai peran. Untuk akun lain, edit email dan password langsung di kolomnya. Isian yang sedang diedit tidak ditimpa oleh respons konfigurasi. Membuka ulang halaman login kembali menampilkan Gilang.
 
 Password template publik adalah `GilangDemo123!`, khusus contoh presentasi. Login tetap diverifikasi server; akun harus dibuat di database. Untuk memakai password demo berbeda yang sudah dikonfigurasi, isi `.env.local`:
 
@@ -49,6 +49,8 @@ Konfigurasi tersedia di `.env.example` dan `vercel.json`. Atur environment di pr
 - `PAYMENT_MODE`: `demo`, `sandbox`, atau `production`.
 - Untuk demo: `ALLOW_DEMO_PAYMENTS=true`. Dua variabel `DEMO_LOGIN_*` hanya diperlukan bila memakai password template demo berbeda dari bawaan publik.
 - Untuk Midtrans: `MIDTRANS_SERVER_KEY` sesuai lingkungan; URL notifikasi adalah `/api/payments/midtrans` pada domain aplikasi.
+
+Login dan aksi browser memvalidasi asal terhadap domain yang sedang diakses, sehingga URL preview Vercel atau domain alias tetap dapat dipakai meskipun berbeda dari `APP_URL`. `APP_URL` tetap diperlukan sebagai alamat kanonis untuk callback pembayaran. Permintaan dari domain lain, origin kosong, serta header forward yang dipalsukan tetap ditolak.
 
 Jalankan `npm run setup` dengan koneksi database target untuk menyiapkan schema dan, bila variabel `PROVISION_*` diisi, akun pengelola. Jalankan `npm run setup:gilang` dengan koneksi database target bila menggunakan akun demo di Vercel. Hapus password provisioning dari environment setelah selesai.
 

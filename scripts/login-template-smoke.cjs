@@ -45,9 +45,8 @@ async function main() {
     // No configuration response or template button is required to fill the form.
     assert.equal(await email.inputValue(), EMAILS.consumer)
     assert.equal(await password.inputValue(), PASSWORD)
-    await page
-      .getByRole('button', { name: 'Gunakan akun lain', exact: true })
-      .click()
+    await email.fill('')
+    await password.fill('')
     assert.equal(await email.inputValue(), '')
     assert.equal(await password.inputValue(), '')
     await email.fill('another@example.test')

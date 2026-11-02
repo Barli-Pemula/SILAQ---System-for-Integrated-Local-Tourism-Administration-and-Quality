@@ -51,9 +51,29 @@ export function appOrigin() {
 }
 
 export function sameOrigin(request: Request) {
-  const expected = appOrigin() || new URL(request.url).origin
-  if (request.headers.get('origin') !== expected)
+  // APP_URL is the canonical payment callback URL, not the only address where
+  // this app can be opened. Vercel's Host header retains the accessed alias or
+  // custom domain, even when the function's request URL uses an internal host.
+  // https://vercel.com/docs/headers/request-headers#host
+  try {
+    const origin = request.headers.get('origin')
+    if (!origin) throw new Error()
+    const source = new URL(origin)
+    const target = new URL(request.url)
+    const host = request.headers.get('host') ?? target.host
+    // Do not accept host lists, credentials, paths, or forwarded-host overrides.
+    if (!host || /[\s/\\?#@,%]/.test(host)) throw new Error()
+    const protocol = process.env.VERCEL ? 'https:' : target.protocol
+    const expected = new URL(`${protocol}//${host}`).origin
+    if (
+      !['http:', 'https:'].includes(source.protocol) ||
+      source.origin !== origin ||
+      source.origin !== expected
+    )
+      throw new Error()
+  } catch {
     throw new HttpError(403, 'Asal permintaan tidak diizinkan.')
+  }
 }
 
 export function failure(error: unknown) {
