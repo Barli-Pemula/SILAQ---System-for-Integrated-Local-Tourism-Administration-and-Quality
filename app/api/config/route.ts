@@ -7,6 +7,9 @@ export async function GET() {
     const mode = paymentMode()
     const catalogApproved = process.env.CATALOG_APPROVED === 'true'
     return json({
+      databaseConfigured:
+        Boolean(process.env.DATABASE_URL) ||
+        (process.env.LOCAL_DATABASE === 'true' && !process.env.VERCEL),
       paymentMode: mode,
       catalogApproved,
       demoLogin: demoLoginTemplate(mode),
