@@ -25,7 +25,7 @@ Buka `http://localhost:3000`. Tanpa `DATABASE_URL`, perintah dev menggunakan Pos
 
 Untuk akun Gilang pada ketiga portal, jalankan `npm run setup:gilang`. Perintah menampilkan password awal hanya untuk akun yang baru dibuat; akun yang sudah ada tidak diubah. Untuk memilih password awal, isi `GILANG_INITIAL_PASSWORD` sebelum menjalankannya.
 
-Autofill diaktifkan melalui `.env.local`:
+Autofill diaktifkan melalui `.env.local`. Tombol **Gunakan template Gilang** mengisi ulang email dan password untuk peran yang sedang dipilih, termasuk setelah kolom diedit:
 
 ```dotenv
 PAYMENT_MODE=demo
@@ -35,6 +35,8 @@ DEMO_LOGIN_PASSWORD=ISI_PASSWORD_AKUN_DEMO_YANG_SUDAH_DIBUAT
 ```
 
 Ketiga akun menggunakan email `gilang.wisatawan@silaq.local`, `gilang.admin@silaq.local`, dan `gilang.superadmin@silaq.local`. Password tidak disimpan dalam repository. Autofill tidak diberikan dalam mode sandbox atau production.
+
+Saat membuat akun baru, `setup:gilang` memakai `GILANG_INITIAL_PASSWORD`, lalu `DEMO_LOGIN_PASSWORD` bila tersedia, agar akun sesuai dengan template. Akun yang sudah ada tetap dipertahankan.
 
 ## Vercel
 

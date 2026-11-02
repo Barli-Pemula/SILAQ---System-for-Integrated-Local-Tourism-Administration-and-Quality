@@ -294,6 +294,26 @@ async function main() {
         ['superadmin', '03'],
       ]) {
         await chooseRole(role)
+        await page
+          .getByLabel('Alamat email', { exact: true })
+          .fill('edited@example.test')
+        await page.locator('input[type=password]').fill('Edited-password-123')
+        await page
+          .getByRole('button', { name: 'Gunakan template Gilang', exact: true })
+          .click()
+        assert.equal(
+          await page.getByLabel('Alamat email', { exact: true }).inputValue(),
+          EMAIL[role]
+        )
+        assert.equal(
+          await page.locator('input[type=password]').inputValue(),
+          process.env.DEMO_LOGIN_PASSWORD
+        )
+        await page
+          .getByLabel('Alamat email', { exact: true })
+          .fill('edited-again@example.test')
+        await page.locator('input[type=password]').fill('Edited-password-456')
+        await chooseRole(role)
         await capture(
           'login',
           `${number}-login-${role === 'consumer' ? 'wisatawan' : role}`,

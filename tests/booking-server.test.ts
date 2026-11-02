@@ -208,6 +208,42 @@ test('booking service uses transactions, ownership and verified payments', async
       }
     )
 
+    await t.test(
+      'every issued voucher has a unique code across bookings and retains it on reload',
+      async () => {
+        const codes: string[] = []
+        for (const productId of [
+          'dest-sade',
+          'hotel-kuta',
+          'boat-gili',
+          'bundle-selatan',
+        ]) {
+          for (let repeat = 0; repeat < 2; repeat++) {
+            const order = await service.createBooking(
+              buyer,
+              draftFor(productId, addDays(todayISO(), 20)),
+              randomUUID()
+            )
+            const paid = await service.demoPayment(buyer, order.id, true)
+            const ids = paid.data.vouchers.map((voucher) => voucher.id)
+            assert(ids.length > 0)
+            ids.forEach((id) => assert.match(id, /^V-[a-f0-9-]{36}$/))
+            codes.push(...ids)
+            const reloaded = await service.getBooking(order.id, buyer)
+            assert.deepEqual(
+              reloaded.data.vouchers.map((voucher) => voucher.id),
+              ids
+            )
+          }
+        }
+        assert.equal(
+          new Set(codes).size,
+          codes.length,
+          'Voucher berbeda tidak boleh memiliki QR dengan kode sama'
+        )
+      }
+    )
+
     await t.test('failed payment releases capacity exactly once', async () => {
       const draft = draftFor('hotel-kuta', addDays(todayISO(), 7))
       const order = await service.createBooking(buyer, draft, randomUUID())

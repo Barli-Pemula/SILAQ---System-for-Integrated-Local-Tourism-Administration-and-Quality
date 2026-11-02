@@ -46,7 +46,9 @@ export function VoucherQRCode({
         </p>
       )}
       {image && (
-        <figcaption>Tunjukkan QR ini kepada petugas untuk validasi.</figcaption>
+        <figcaption>
+          QR unik untuk voucher ini. Tunjukkan kepada petugas untuk validasi.
+        </figcaption>
       )}
     </figure>
   )

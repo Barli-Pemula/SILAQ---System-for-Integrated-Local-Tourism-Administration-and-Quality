@@ -4,13 +4,15 @@ import { authenticate, createUser } from '../lib/server/auth'
 import { closeDatabase, ensureDatabase, query } from '../lib/server/db'
 import { MARKET_PRODUCTS } from '../lib/marketplace-data'
 import { Role } from '../types/smart-tourism'
+import { DEMO_ACCOUNT_EMAILS, DEMO_ACCOUNT_NAME } from '../lib/demo-accounts'
 
-const name = 'Gilang Khaerul Afan'
-const accounts: { role: Role; email: string }[] = [
-  { role: 'consumer', email: 'gilang.wisatawan@silaq.local' },
-  { role: 'admin', email: 'gilang.admin@silaq.local' },
-  { role: 'superadmin', email: 'gilang.superadmin@silaq.local' },
-]
+const name = DEMO_ACCOUNT_NAME
+const accounts = (['consumer', 'admin', 'superadmin'] as Role[]).map(
+  (role) => ({
+    role,
+    email: DEMO_ACCOUNT_EMAILS[role],
+  })
+)
 
 async function main() {
   loadEnvConfig(process.cwd(), true)
@@ -18,7 +20,9 @@ async function main() {
     process.env.LOCAL_DATABASE ||= 'true'
   await ensureDatabase()
   const password =
-    process.env.GILANG_INITIAL_PASSWORD || randomBytes(15).toString('base64url')
+    process.env.GILANG_INITIAL_PASSWORD ||
+    process.env.DEMO_LOGIN_PASSWORD ||
+    randomBytes(15).toString('base64url')
   let created = 0
   for (const account of accounts) {
     const existing = await query<{ name: string; role: Role }>(

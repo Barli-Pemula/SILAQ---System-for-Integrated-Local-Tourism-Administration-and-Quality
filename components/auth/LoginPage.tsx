@@ -88,6 +88,12 @@ export default function LoginPage({
     setRole(selected)
     setRegistering(false)
     setLoginMessage('')
+    // Selecting the same role does not rerun the effect; restore fields directly.
+    if (template) {
+      setEmail(template.emails[selected])
+      setPassword(template.password)
+      setName(template.name)
+    }
   }
 
   const submit = async (event: FormEvent) => {
@@ -267,11 +273,23 @@ export default function LoginPage({
             ))}
           </div>
 
-          <p className="mb-5 text-xs leading-6 text-slate-500">
-            {template && !registering
-              ? `Akun ${template.name} sudah terisi. Pilih peran, lalu tekan Masuk untuk mencoba portalnya.`
-              : 'Masuk menggunakan akunmu. Hak akses wisatawan, mitra, dan pengelola diverifikasi oleh server.'}
-          </p>
+          <div className="mb-5 text-xs leading-6 text-slate-500">
+            <p>
+              {template && !registering
+                ? `Akun ${template.name} sudah terisi. Pilih peran, lalu tekan Masuk untuk mencoba portalnya.`
+                : 'Masuk menggunakan akunmu. Hak akses wisatawan, mitra, dan pengelola diverifikasi oleh server.'}
+            </p>
+            {template && !registering && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => handleRoleSelect(role)}
+                className="mt-1 min-h-11 font-semibold text-ocean-600 hover:underline"
+              >
+                Gunakan template Gilang
+              </button>
+            )}
+          </div>
           <button
             type="button"
             disabled={busy}
