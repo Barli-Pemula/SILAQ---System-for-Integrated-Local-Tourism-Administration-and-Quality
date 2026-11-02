@@ -8,18 +8,22 @@ import { randomBytes } from 'node:crypto'
 nextEnv.loadEnvConfig(process.cwd(), true)
 const directory = await mkdtemp(join(tmpdir(), 'silaq-capture-'))
 const port = process.env.CAPTURE_PORT || '3200'
+const presentation = process.argv.includes('--presentation')
 const env = {
   ...process.env,
   VERCEL: '',
   DATABASE_URL: '',
-  LOCAL_DATABASE: 'true',
+  LOCAL_DATABASE: presentation ? 'false' : 'true',
+  PRESENTATION_MODE: presentation ? 'true' : 'false',
+  PRESENTATION_FIXTURE_PATH: join(directory, 'presentation.json'),
   LOCAL_DATABASE_PATH: directory,
   PAYMENT_MODE: 'demo',
   ALLOW_DEMO_PAYMENTS: 'true',
   CATALOG_APPROVED: 'false',
   DEMO_LOGIN_ENABLED: 'true',
-  DEMO_LOGIN_PASSWORD:
-    process.env.DEMO_LOGIN_PASSWORD || randomBytes(15).toString('base64url'),
+  DEMO_LOGIN_PASSWORD: presentation
+    ? 'GilangDemo123!'
+    : process.env.DEMO_LOGIN_PASSWORD || randomBytes(15).toString('base64url'),
   // Exercise real Gilang logins through an alias different from the canonical URL.
   APP_URL: 'http://canonical.example.test',
   BASE_URL: `http://127.0.0.1:${port}`,
@@ -42,7 +46,9 @@ try {
       '--conditions=react-server',
       '--import',
       'tsx',
-      'scripts/seed-capture-data.ts',
+      presentation
+        ? 'scripts/seed-presentation-data.ts'
+        : 'scripts/seed-capture-data.ts',
     ])
   )
   server = run([

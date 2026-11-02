@@ -6,6 +6,7 @@ const path = require('node:path')
 const BASE = process.env.BASE_URL || 'http://localhost:3000'
 const OUT = path.join(__dirname, '..', 'screenshot', 'terbaru')
 const PROBE = process.argv.includes('--probe')
+const PRESENTATION = process.argv.includes('--presentation')
 const AUDIT = process.argv.includes('--audit') || PROBE
 const ROLE = {
   consumer: 'Wisatawan',
@@ -74,6 +75,17 @@ async function main() {
         reducedMotion: 'reduce',
       })
       const page = await context.newPage()
+      if (PRESENTATION) {
+        const fixture = fs.readFileSync(
+          process.env.PRESENTATION_FIXTURE_PATH,
+          'utf8'
+        )
+        await context.addInitScript((saved) => {
+          sessionStorage.removeItem('silaq.presentation.session.v1')
+          if (!localStorage.getItem('silaq.presentation.v1'))
+            localStorage.setItem('silaq.presentation.v1', saved)
+        }, fixture)
+      }
       page.on('pageerror', (error) =>
         errors.push({ device: device.id, message: error.message })
       )
@@ -163,6 +175,17 @@ async function main() {
           .fill('081234567890')
       }
       async function capture(role, slug, title, description, options = {}) {
+        if (PRESENTATION)
+          description = description
+            .replaceAll('Pesanan server', 'Pesanan demo')
+            .replaceAll('Pesanan dari server', 'Pesanan demo')
+            .replaceAll(
+              'server memeriksa kredensial dan hak akses',
+              'akun demo sesuai peran dipilih'
+            )
+            .replaceAll('pada akun di server', 'pada browser ini')
+            .replaceAll('di server', 'di browser ini')
+            .replaceAll('voucher server', 'voucher demo')
         await page.evaluate(() => window.scrollTo(0, 0))
         await page.evaluate(() => document.fonts.ready)
         await page.waitForTimeout(100)
@@ -752,7 +775,9 @@ function writeGallery() {
     '- Handphone: viewport 390 x 844; layout juga diperiksa pada 320, 360, dan 430 px.',
     '- Desktop: viewport 1440 x 1000.',
     '- Akun: Gilang Khaerul Afan. Password pada screenshot tetap disamarkan.',
-    '- Database screenshot terpisah dari database pengguna. Semua transaksi merupakan pengujian.',
+    PRESENTATION
+      ? '- Mode presentasi tanpa database. Penyimpanan screenshot terpisah dari data pengguna. Semua transaksi merupakan pengujian.'
+      : '- Database screenshot terpisah dari database pengguna. Semua transaksi merupakan pengujian.',
     '- Modul awal yang masih berupa contoh dijelaskan pada keterangan masing-masing gambar.',
     '',
     'Buka index.html untuk galeri dan filter per perangkat/peran.',

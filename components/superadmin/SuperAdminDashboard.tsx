@@ -391,7 +391,7 @@ export default function SuperAdminDashboard({ onLogout, user }: SuperAdminDashbo
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-sm font-medium text-slate-600 sm:block">
-              {isLivePage ? 'Data pesanan server' : 'Februari 2026 · contoh'}
+              {isLivePage ? 'Data pesanan' : 'Februari 2026 · contoh'}
             </span>
             <button
               onClick={() => setNotice('Semua 48 node gate di Lombok terhubung ke server pusat.')}
@@ -444,7 +444,7 @@ export default function SuperAdminDashboard({ onLogout, user }: SuperAdminDashbo
           )}
 
           {activeNav === 'Layanan & Pesanan' && <TravelOperations />}
-          {activeNav !== 'Layanan & Pesanan' && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Transaksi dan voucher server tersedia pada Layanan & Pesanan.</p>}
+          {activeNav !== 'Layanan & Pesanan' && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Transaksi dan voucher tersedia pada Layanan & Pesanan.</p>}
           {/* TAB 1: RINGKASAN EKOSISTEM */}
           {activeNav === 'Ringkasan' && (
             <div className="space-y-5">

@@ -21,28 +21,16 @@ async function main() {
   try {
     const context = await browser.newContext()
     const page = await context.newPage()
-    let releaseConfig
-    let firstConfig = true
-    const gate = new Promise((resolve) => {
-      releaseConfig = resolve
-    })
     await page.route('**/api/config', async (route) => {
-      await gate
-      const demoLogin = firstConfig
-        ? {
-            name: 'Gilang Khaerul Afan',
-            emails: EMAILS,
-            password: 'Server-demo-password-123',
-          }
-        : null
-      firstConfig = false
-      await route.fulfill({ json: { paymentMode: 'demo', demoLogin } })
+      await route.fulfill({
+        json: { browserDemo: false, paymentMode: 'demo', demoLogin: null },
+      })
     })
     await page.goto(BASE, { waitUntil: 'domcontentloaded' })
     const email = page.getByLabel('Alamat email', { exact: true })
     const password = page.locator('input[type=password]')
     await email.waitFor()
-    // No configuration response or template button is required to fill the form.
+    // A missing server template does not clear the public Gilang defaults.
     assert.equal(await email.inputValue(), EMAILS.consumer)
     assert.equal(await password.inputValue(), PASSWORD)
     await email.fill('')
@@ -51,11 +39,6 @@ async function main() {
     assert.equal(await password.inputValue(), '')
     await email.fill('another@example.test')
     await password.fill('Another-password-123')
-    const received = page.waitForResponse((response) =>
-      response.url().endsWith('/api/config')
-    )
-    releaseConfig()
-    await received
     await page.getByRole('button', { name: /^Masuk sebagai/ }).waitFor()
     assert.equal(await email.inputValue(), 'another@example.test')
     assert.equal(await password.inputValue(), 'Another-password-123')

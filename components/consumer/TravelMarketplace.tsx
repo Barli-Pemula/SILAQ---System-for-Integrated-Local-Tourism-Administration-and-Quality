@@ -83,8 +83,9 @@ export function PaymentEnvironmentNotice() {
       <p className="travel-info">
         <CircleAlert size={16} />
         <span>
-          Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan
-          nyata.
+          {config.browserDemo
+            ? 'Mode presentasi. Data tersimpan di browser ini; pembayaran dan voucher merupakan simulasi.'
+            : 'Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan nyata.'}
         </span>
       </p>
     </div>
@@ -698,7 +699,7 @@ export function BookingCheckout({
                         'Tiket berlaku pada tanggal pilihan')}{' '}
                   ·{' '}
                   {available === null
-                    ? 'Memeriksa kuota server…'
+                    ? 'Memeriksa ketersediaan…'
                     : `${available} ${isHotel ? 'kamar' : 'tempat'} tersedia`}{' '}
                 </p>
                 {product.arrival && (
@@ -885,7 +886,9 @@ export function BookingCheckout({
                 <p>
                   {config?.paymentMode === 'production'
                     ? 'Pembayaran diproses oleh Midtrans. Voucher diterbitkan setelah server menerima konfirmasi pembayaran. Periksa komponen yang termasuk sebelum melanjutkan.'
-                    : 'Mode pengujian: tidak ada tagihan atau reservasi perjalanan nyata. Pesanan tersimpan di server; voucher hanya terbit setelah konfirmasi pembayaran uji.'}
+                    : config?.browserDemo
+                      ? 'Mode presentasi: tidak ada tagihan atau reservasi nyata. Pesanan disimpan di browser ini; voucher terbit setelah simulasi pembayaran berhasil.'
+                      : 'Mode pengujian: tidak ada tagihan atau reservasi perjalanan nyata. Pesanan tersimpan di server; voucher hanya terbit setelah konfirmasi pembayaran uji.'}
                 </p>
               </div>
               <label className="payment-consent">
@@ -1058,7 +1061,9 @@ function PendingBooking({
         </p>
         <p className="travel-info mt-5">
           {booking.status === 'pending'
-            ? 'Voucher dan itinerary lengkap belum diterbitkan. Selesaikan pembayaran, lalu periksa status. Status di halaman penyedia belum menjadi bukti pelunasan sampai server memverifikasinya.'
+            ? booking.paymentMode === 'demo'
+              ? 'Voucher dan itinerary lengkap belum diterbitkan. Gunakan simulasi pembayaran berhasil untuk menerbitkan tiket demo; tidak ada tagihan nyata.'
+              : 'Voucher dan itinerary lengkap belum diterbitkan. Selesaikan pembayaran, lalu periksa status. Status di halaman penyedia belum menjadi bukti pelunasan sampai server memverifikasinya.'
             : booking.status === 'payment_review'
               ? 'Pembayaran memerlukan pemeriksaan pengelola. Jangan membayar ulang. Hubungi pengelola dengan nomor pesanan ini untuk konfirmasi atau pengembalian dana.'
               : 'Pesanan ini tidak memiliki voucher aktif. Mulai pesanan baru untuk memilih tanggal dan kuota yang tersedia.'}
@@ -1069,8 +1074,9 @@ function PendingBooking({
             {new Date(booking.expiresAt).toLocaleString('id-ID', {
               timeZone: 'Asia/Makassar',
             })}{' '}
-            WITA. Halaman Midtrans dapat memiliki batas pembayaran yang lebih
-            awal.
+            WITA.{' '}
+            {booking.paymentMode !== 'demo' &&
+              'Halaman Midtrans dapat memiliki batas pembayaran yang lebih awal.'}
           </p>
         )}
         {error && (
@@ -1147,6 +1153,7 @@ export function BookingLibrary({
   compact?: boolean
 }) {
   const { bookings: orders, loading, error } = useBookingState()
+  const { config } = usePaymentConfig()
   const [filter, setFilter] = useState('Semua')
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
@@ -1167,7 +1174,7 @@ export function BookingLibrary({
     return (
       <section className="consumer-container travel-page">
         <p className="travel-info" role="status">
-          Memuat pesanan dari server…
+          Memuat pesanan…
         </p>
       </section>
     )
@@ -1398,7 +1405,9 @@ export function BookingLibrary({
             <p className="travel-demo-note mt-4">
               {selected.paymentMode === 'production'
                 ? 'Pesanan tersimpan pada akunmu. Tunjukkan kode voucher kepada petugas terkait.'
-                : 'Pesanan tersimpan di server. Voucher pengujian tidak berlaku untuk perjalanan nyata.'}
+                : config?.browserDemo
+                  ? 'Pesanan tersimpan di browser ini. Voucher presentasi tidak berlaku untuk perjalanan nyata.'
+                  : 'Pesanan tersimpan di server. Voucher pengujian tidak berlaku untuk perjalanan nyata.'}
             </p>
           </aside>
         </div>

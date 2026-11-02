@@ -1,9 +1,10 @@
 'use client'
 import { useState } from 'react'
 import { Ticket, CheckCircle2 } from 'lucide-react'
-import { api } from '@/lib/booking-store'
+import { api, usePaymentConfig } from '@/lib/booking-store'
 
 export default function VoucherScanner() {
+  const { config } = usePaymentConfig()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState('')
@@ -15,9 +16,9 @@ export default function VoucherScanner() {
         Validasi voucher
       </h2>
       <p className="travel-description">
-        Masukkan kode voucher wisatawan atau gunakan pemindai barcode yang
-        mengetik ke kolom ini. Server memeriksa pembayaran, tanggal, wewenang
-        mitra, dan penggunaan sebelumnya.
+        {config?.browserDemo
+          ? 'Masukkan kode voucher demo atau gunakan pemindai QR yang mengetik ke kolom ini. Validasi memeriksa pembayaran simulasi, tanggal, dan penggunaan sebelumnya pada browser ini.'
+          : 'Masukkan kode voucher wisatawan atau gunakan pemindai barcode yang mengetik ke kolom ini. Server memeriksa pembayaran, tanggal, wewenang mitra, dan penggunaan sebelumnya.'}
       </p>
       <form
         className="mt-5"

@@ -6,6 +6,7 @@ import {
   checkInVoucher,
   refreshBookings,
   useBookingState,
+  usePaymentConfig,
 } from '@/lib/booking-store'
 import { bookingStatusLabel } from '@/components/consumer/TravelMarketplace'
 import {
@@ -17,6 +18,7 @@ import {
 
 export default function TravelOperations() {
   const { bookings, loading, error } = useBookingState()
+  const { config } = usePaymentConfig()
   const paid = bookings.filter((b) => b.status === 'paid')
   const [checking, setChecking] = useState('')
   const validate = async (id: string, code: string) => {
@@ -51,9 +53,9 @@ export default function TravelOperations() {
       <div className="travel-info mb-5">
         <CircleAlert size={19} />
         <p>
-          Pesanan dan validasi voucher tersimpan di server. Mitra hanya dapat
-          memvalidasi layanan yang ditugaskan ke akunnya. Label pengujian
-          berarti transaksi tanpa tagihan perjalanan nyata.
+          {config?.browserDemo
+            ? 'Mode presentasi. Pesanan dan validasi tersimpan di browser ini. Gunakan browser yang sama untuk berpindah antara wisatawan, admin, dan superadmin. Tidak ada tagihan nyata.'
+            : 'Pesanan dan validasi voucher tersimpan di server. Mitra hanya dapat memvalidasi layanan yang ditugaskan ke akunnya. Label pengujian berarti transaksi tanpa tagihan perjalanan nyata.'}
         </p>
       </div>
       {loading && <p className="travel-info mb-4">Memuat pesanan…</p>}

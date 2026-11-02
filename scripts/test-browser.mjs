@@ -12,6 +12,7 @@ const base = `http://127.0.0.1:${port}`
 const env = {
   ...process.env,
   VERCEL: '',
+  PRESENTATION_MODE: 'false',
   LOCAL_DATABASE: 'true',
   LOCAL_DATABASE_PATH: directory,
   DATABASE_URL: '',

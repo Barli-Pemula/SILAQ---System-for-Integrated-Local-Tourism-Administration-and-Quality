@@ -254,7 +254,7 @@ export default function AdminDashboard({ onLogout, user }: AdminDashboardProps) 
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-sm font-medium text-slate-600 sm:block">
-              {isLivePage ? 'Data pesanan server' : 'Februari 2026 · contoh'}
+              {isLivePage ? 'Data pesanan' : 'Februari 2026 · contoh'}
             </span>
             <button
               onClick={() => setNotice('Semua gerbang operasional dalam kondisi sinkron.')}
@@ -309,7 +309,7 @@ export default function AdminDashboard({ onLogout, user }: AdminDashboardProps) 
           )}
 
           {activeNav === 'Layanan & Pesanan' && <TravelOperations />}
-          {!['Layanan & Pesanan', 'Validasi QR & Scanner'].includes(activeNav) && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Untuk pesanan dan validasi yang tersimpan di server, gunakan Layanan & Pesanan atau Validasi Voucher.</p>}
+          {!['Layanan & Pesanan', 'Validasi QR & Scanner'].includes(activeNav) && <p className="travel-info mb-5">Modul contoh dari prototipe awal. Untuk pesanan dan validasi terbaru, gunakan Layanan & Pesanan atau Validasi Voucher.</p>}
           {/* TAB 1: RINGKASAN OPERASIONAL */}
           {activeNav === 'Ringkasan' && (
             <div className="space-y-5">

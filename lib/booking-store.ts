@@ -29,7 +29,7 @@ const subscribe = (fn: () => void) => {
 const snapshot = () => state
 const serverSnapshot = () => EMPTY
 
-export async function api<T>(url: string, options?: RequestInit): Promise<T> {
+async function networkApi<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...options,
     credentials: 'same-origin',
@@ -40,6 +40,28 @@ export async function api<T>(url: string, options?: RequestInit): Promise<T> {
   if (!response.ok)
     throw new Error(data.error || 'Layanan belum tersedia. Silakan coba lagi.')
   return data as T
+}
+
+let runtimeConfig: Promise<{ browserDemo?: boolean }> | undefined
+function loadRuntimeConfig() {
+  return (runtimeConfig ??= networkApi<{ browserDemo?: boolean }>(
+    '/api/config'
+  ).catch((error) => {
+    runtimeConfig = undefined
+    throw error
+  }))
+}
+
+export async function api<T>(url: string, options?: RequestInit): Promise<T> {
+  options?.signal?.throwIfAborted()
+  const config = await loadRuntimeConfig()
+  if (url === '/api/config') return config as T
+  if (config.browserDemo) {
+    const { presentationApi } = await import('./presentation-api')
+    options?.signal?.throwIfAborted()
+    return presentationApi<T>(url, options)
+  }
+  return networkApi<T>(url, options)
 }
 
 export function resetBookings() {
@@ -142,6 +164,7 @@ export async function checkInVoucher(id: string, code: string) {
 
 export function usePaymentConfig() {
   const [config, setConfig] = useState<{
+    browserDemo?: boolean
     paymentMode: 'demo' | 'sandbox' | 'production'
     catalogApproved: boolean
     paymentReady: boolean

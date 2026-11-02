@@ -9,8 +9,16 @@ Platform pariwisata Lombok dengan portal wisatawan, admin mitra, dan superadmin.
 - Overview paket memuat ringkasan rute, saran kuliner, dan pilihan hotel.
 - Voucher QR per destinasi/hotel/kapal serta itinerary lengkap terbit setelah pembayaran berhasil.
 - Unduhan tiket HTML berisi QR, dapat dibuka offline dan dicetak menjadi PDF.
-- Harga, kuota, pembayaran, hak akses, dan check-in diverifikasi di server.
+- Mode database memverifikasi harga, kuota, pembayaran, hak akses, dan check-in di server. Mode presentasi mensimulasikan alur yang sama di browser.
 - Akun Gilang otomatis terisi setiap halaman login dibuka; pilih peran lalu tekan Masuk. Kolom tetap dapat diedit untuk akun lain.
+
+## Demo presentasi tanpa database
+
+Pada Vercel tanpa `DATABASE_URL`, gateway pembayaran, atau inventori produksi, mode presentasi aktif otomatis. Bisa juga diaktifkan dengan `PRESENTATION_MODE=true`. Tidak perlu setup akun atau database: pilih peran Gilang, lalu klik Masuk.
+
+Pemesanan, pembayaran berhasil/gagal, itinerary, QR unik, unduhan tiket, serta validasi admin berjalan menggunakan penyimpanan browser. Wisatawan, admin, dan superadmin pada browser yang sama dapat melihat pesanan demo yang sama sesuai peran. Reload mempertahankan data; browser/perangkat lain memiliki data demo terpisah. Menghapus penyimpanan situs menghapus data demo.
+
+Tidak ada pembayaran atau reservasi mitra nyata. Mode ini tidak aktif ketika `PAYMENT_MODE=production` atau `CATALOG_APPROVED=true`. Gunakan `PRESENTATION_MODE=false` untuk mewajibkan backend database.
 
 ## Pengembangan lokal
 
@@ -27,7 +35,7 @@ Untuk akun Gilang pada ketiga portal, jalankan `npm run setup:gilang`. Perintah 
 
 Form login langsung menampilkan template publik Gilang sejak pertama muncul, tanpa menekan tombol atau mengaktifkan environment autofill. Peran awal adalah Wisatawan; memilih Admin Mitra atau SuperAdmin langsung mengganti isian sesuai peran. Untuk akun lain, edit email dan password langsung di kolomnya. Isian yang sedang diedit tidak ditimpa oleh respons konfigurasi. Membuka ulang halaman login kembali menampilkan Gilang.
 
-Password template publik adalah `GilangDemo123!`, khusus contoh presentasi. Login tetap diverifikasi server; akun harus dibuat di database. Untuk memakai password demo berbeda yang sudah dikonfigurasi, isi `.env.local`:
+Password template publik adalah `GilangDemo123!`, khusus contoh presentasi. Mode tanpa database langsung menyediakan ketiga akun tersebut. Untuk mode database, akun perlu dibuat di database. Untuk memakai password demo server berbeda yang sudah dikonfigurasi, isi `.env.local`:
 
 ```dotenv
 PAYMENT_MODE=demo
@@ -42,7 +50,7 @@ Saat membuat akun baru, `setup:gilang` memakai `GILANG_INITIAL_PASSWORD`, lalu `
 
 ## Vercel
 
-Konfigurasi tersedia di `.env.example` dan `vercel.json`. Atur environment di proyek Vercel:
+Untuk presentasi tanpa database, deploy langsung; konfigurasi backend berikut hanya diperlukan jika menggunakan data server. Konfigurasi tersedia di `.env.example` dan `vercel.json`:
 
 - `DATABASE_URL`: koneksi PostgreSQL persisten; PGlite lokal tidak digunakan pada Vercel.
 - `APP_URL`: URL aplikasi yang menerima permintaan dan notifikasi pembayaran.
@@ -63,8 +71,11 @@ npm run typecheck
 npm run test:server
 npm run build
 npm run test:browser
+npm run test:presentation
 npm run screenshots
 ```
+
+Untuk mengambil semua screenshot menggunakan mode tanpa database, jalankan `npm run screenshots -- --presentation`. Hasilnya juga mencakup contoh tiket QR dan itinerary pada browser.
 
 Pengujian browser dan screenshot menjalankan server produksi lokal dengan database sementara terpisah. Screenshot semua portal, galeri, keterangan, hasil audit ukuran layar, dan contoh unduhan tiket tersimpan di `screenshot/terbaru/`. Buka `screenshot/terbaru/index.html` untuk galeri. `npm run screenshots:audit` memeriksa layout tanpa membuat ulang gambar.
 
