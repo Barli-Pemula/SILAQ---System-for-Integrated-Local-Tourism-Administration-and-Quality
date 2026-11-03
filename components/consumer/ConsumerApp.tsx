@@ -574,9 +574,9 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
                 className="relative"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
+                  src="/tourist-profile.jpg"
                   alt={user.name}
-                  className="h-10 w-10 rounded-full border-2 border-white object-cover shadow-sm ring-2 ring-sky-500"
+                  className="h-10 w-10 rounded-full border-2 border-white object-cover object-top shadow-sm ring-2 ring-sky-500"
                 />
               </button>
             </div>
@@ -1956,9 +1956,9 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
           <div className="profile-head">
             <div className="relative mx-auto w-fit">
               <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop&auto=format"
+                src="/tourist-profile.jpg"
                 alt={user.name}
-                className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-lg"
+                className="h-24 w-24 rounded-full border-4 border-white object-cover object-top shadow-lg"
               />
               <span className="absolute bottom-1.5 right-1.5 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-500" />
             </div>
@@ -2067,9 +2067,9 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-left">
                 <img
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&auto=format"
+                  src="/tourist-profile.jpg"
                   alt={user.name}
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-8 w-8 rounded-full object-cover object-top"
                 />
                 <span className="hidden sm:block">
                   <strong className="block text-xs text-slate-800">

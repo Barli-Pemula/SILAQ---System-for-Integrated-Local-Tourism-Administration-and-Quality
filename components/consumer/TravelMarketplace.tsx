@@ -77,15 +77,14 @@ const CATEGORIES: {
 
 export function PaymentEnvironmentNotice() {
   const { config } = usePaymentConfig()
-  if (!config || config.paymentMode === 'production') return null
+  if (!config || config.browserDemo || config.paymentMode === 'production')
+    return null
   return (
     <div className="consumer-container py-3">
       <p className="travel-info">
         <CircleAlert size={16} />
         <span>
-          {config.browserDemo
-            ? 'Mode presentasi. Data tersimpan di browser ini; pembayaran dan voucher merupakan simulasi.'
-            : 'Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan nyata.'}
+          Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan nyata.
         </span>
       </p>
     </div>
