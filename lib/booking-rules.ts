@@ -1,5 +1,6 @@
 import { BookingDraft, MarketProduct } from '@/types/marketplace'
 import { addDays, HOTELS, todayISO } from './marketplace-data'
+import { parseCarbonTravel } from './carbon'
 
 export const nightsBetween = (start: string, end: string) =>
   Math.round(
@@ -32,6 +33,7 @@ export function defaultDraft(
     email: '',
     phone: '',
     paymentMethod: 'QRIS',
+    travel: { originId: '', mode: 'car', occupants: 1, returnToOrigin: false },
   }
 }
 
@@ -121,6 +123,15 @@ export function validateBooking(
     return 'Masukkan nomor telepon yang valid.'
   if (!['QRIS', 'Virtual Account'].includes(draft.paymentMethod))
     return 'Pilih metode pembayaran.'
+  if (draft.travel !== undefined) {
+    try {
+      parseCarbonTravel(draft.travel)
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : 'Pilihan perjalanan tidak valid.'
+    }
+  }
   return null
 }
 
@@ -149,5 +160,8 @@ export function parseDraft(value: unknown): BookingDraft {
     ...stringKeys.map((key) => [key, raw[key]]),
     ['quantity', raw.quantity],
     ['rooms', raw.rooms],
+    ...(raw.travel === undefined
+      ? []
+      : [['travel', parseCarbonTravel(raw.travel)]]),
   ]) as unknown as BookingDraft
 }

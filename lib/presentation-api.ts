@@ -1,4 +1,5 @@
 import { SessionUser } from '@/types/auth'
+import { estimateCarbon } from './carbon'
 import {
   BookingDraft,
   BookingVoucher,
@@ -466,6 +467,7 @@ async function perform(url: string, options?: RequestInit): Promise<unknown> {
         hotelTotal: quote.hotelTotal,
         fee: quote.fee,
         total: quote.total,
+        carbon: estimateCarbon(product, draft, MARKET_PRODUCTS),
         vouchers: [],
         itinerary: [],
       }

@@ -54,6 +54,8 @@ import {
 import { bookingDocument } from '@/lib/voucher-document'
 import { VoucherQRCode } from './VoucherQRCode'
 import { BundleOverviewDialog, ItineraryOverview } from './ItineraryOverview'
+import { CarbonTravelOptions } from './CarbonTravelOptions'
+import { carbonNumber, estimateCarbon } from '@/lib/carbon'
 
 const CATEGORIES: {
   label: MarketCategory
@@ -84,7 +86,8 @@ export function PaymentEnvironmentNotice() {
       <p className="travel-info">
         <CircleAlert size={16} />
         <span>
-          Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan nyata.
+          Mode pengujian. Pembayaran dan voucher belum berlaku untuk perjalanan
+          nyata.
         </span>
       </p>
     </div>
@@ -418,17 +421,25 @@ export function BookingCheckout({
   initialDate,
   onBack,
   onComplete,
+  initialDraft,
+  onDraftChange,
+  onViewCarbon,
 }: {
   product: MarketProduct
   initialDate?: string
   onBack: () => void
   onComplete: (b: TravelBooking) => void
+  initialDraft?: BookingDraft | null
+  onDraftChange?: (draft: BookingDraft) => void
+  onViewCarbon?: () => void
 }) {
   const { config, error: configError } = usePaymentConfig()
   const [available, setAvailable] = useState<number | null>(null)
   const attempt = useRef({ key: '', fingerprint: '' })
   const [draft, setDraft] = useState<BookingDraft>(() =>
-    defaultDraft(product, initialDate)
+    initialDraft?.productId === product.id
+      ? initialDraft
+      : defaultDraft(product, initialDate)
   )
   const [stage, setStage] = useState<'details' | 'payment'>('details')
   const [error, setError] = useState('')
@@ -436,6 +447,9 @@ export function BookingCheckout({
   const [agreed, setAgreed] = useState(false)
   const mounted = useRef(true)
   const inFlight = useRef(false)
+  useEffect(() => {
+    onDraftChange?.(draft)
+  }, [draft, onDraftChange])
   useEffect(() => {
     mounted.current = true
     return () => {
@@ -450,6 +464,7 @@ export function BookingCheckout({
     setError('')
   }
   const quote = bookingQuote(product, draft)
+  const carbon = estimateCarbon(product, draft, MARKET_PRODUCTS)
   const hotel = HOTELS.find((h) => h.id === product.hotelId)
   const isHotel = product.category === 'Hotel'
   useEffect(() => {
@@ -786,6 +801,11 @@ export function BookingCheckout({
                   )}
                 </article>
               )}
+              <CarbonTravelOptions
+                product={product}
+                draft={draft}
+                onChange={(travel) => update('travel', travel)}
+              />
               <article className="travel-panel mt-5">
                 <h2>Data pemesan</h2>
                 <p className="travel-help">
@@ -940,6 +960,23 @@ export function BookingCheckout({
           <div className="summary-total">
             <span>Total pembayaran</span>
             <strong>{rupiah(quote.total)}</strong>
+          </div>
+          <div className="carbon-summary-note">
+            <strong>Estimasi jejak perjalanan</strong>
+            <span>
+              {carbonNumber(carbon.distanceKm)} km ·{' '}
+              {carbonNumber(carbon.totalKg)} kg CO₂e
+            </span>
+            {onViewCarbon && (
+              <button
+                type="button"
+                className="travel-text-button"
+                disabled={busy}
+                onClick={onViewCarbon}
+              >
+                Lihat Carbon Footprint <ArrowRight size={14} />
+              </button>
+            )}
           </div>
           {(error || configError) && (
             <p className="travel-error" role="alert">
@@ -1145,11 +1182,13 @@ export function BookingLibrary({
   onSelect,
   onExplore,
   compact = false,
+  onViewCarbon,
 }: {
   selectedId?: string
   onSelect: (id: string) => void
   onExplore: () => void
   compact?: boolean
+  onViewCarbon?: () => void
 }) {
   const { bookings: orders, loading, error } = useBookingState()
   const { config } = usePaymentConfig()
@@ -1203,6 +1242,15 @@ export function BookingLibrary({
     const product = MARKET_PRODUCTS.find((p) => p.id === selected.productId)
     return (
       <section className="consumer-container travel-page">
+        {onViewCarbon && (
+          <button
+            type="button"
+            className="travel-secondary mb-4"
+            onClick={onViewCarbon}
+          >
+            Lihat Carbon Footprint <ArrowRight size={15} />
+          </button>
+        )}
         <button
           className="travel-text-button mb-6"
           onClick={() => onSelect('')}

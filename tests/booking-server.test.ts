@@ -116,6 +116,8 @@ test('booking service uses transactions, ownership and verified payments', async
         const draft = rules.parseDraft({
           ...draftFor('bundle-selatan'),
           quantity: 2,
+          travel: { originId: 'airport', mode: 'car', occupants: 2, returnToOrigin: true },
+          carbon: { totalKg: -100 },
           total: 1,
           status: 'paid',
           vouchers: ['forged'],
@@ -123,6 +125,9 @@ test('booking service uses transactions, ownership and verified payments', async
         paidOrder = await service.createBooking(buyer, draft, randomUUID())
         const visible = service.visibleBooking(paidOrder, buyer)
         assert.equal(visible.total, 185000)
+        assert.ok(visible.carbon!.totalKg > 0)
+        assert.equal(visible.carbon!.originLabel, 'Bandara Lombok')
+        assert.equal(visible.carbon!.legs.at(-1)!.to, 'Bandara Lombok')
         assert.equal(visible.status, 'pending')
         assert.deepEqual(visible.vouchers, [])
         assert.deepEqual(visible.itinerary, [])

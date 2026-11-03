@@ -128,6 +128,7 @@ test('presentation works without a server database', async (t) => {
           ...draft('bundle-utara'),
           quantity: 2,
           hotelId: 'hotel-senaru',
+          travel: { originId: 'bangsal', mode: 'car', occupants: 2, returnToOrigin: true },
         }
         const key = crypto.randomUUID()
         const first = await call<{ booking: TravelBooking }>(
@@ -136,6 +137,9 @@ test('presentation works without a server database', async (t) => {
           { 'Idempotency-Key': key }
         )
         assert.equal(first.booking.total, 535000)
+        assert.equal(first.booking.carbon!.originLabel, 'Pelabuhan Bangsal')
+        assert.ok(first.booking.carbon!.distanceKm > 0)
+        assert.equal(first.booking.carbon!.accommodationKg, 62.7)
         assert.deepEqual(first.booking.vouchers, [])
         assert.deepEqual(first.booking.itinerary, [])
         assert.equal(
@@ -159,6 +163,7 @@ test('presentation works without a server database', async (t) => {
         )
         paid = (await settle(first.booking.id)).booking
         assert.equal(paid.status, 'paid')
+        assert.deepEqual(paid.carbon, first.booking.carbon)
         assert.equal(paid.vouchers.length, 3)
         assert(paid.itinerary.find((stop) => stop.type === 'hotel')!.included)
         assert(

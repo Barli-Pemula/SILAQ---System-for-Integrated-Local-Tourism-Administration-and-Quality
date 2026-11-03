@@ -58,6 +58,39 @@ export interface BookingDraft {
   email: string
   phone: string
   paymentMethod: 'QRIS' | 'Virtual Account'
+  travel?: CarbonTravelInput
+}
+
+export type CarbonTransport = 'car' | 'motorbike' | 'coach' | 'walk'
+
+export interface CarbonTravelInput {
+  originId: string
+  mode: CarbonTransport
+  occupants: number
+  returnToOrigin: boolean
+}
+
+export interface CarbonLeg {
+  from: string
+  to: string
+  distanceKm: number
+  mode: 'road' | 'sea'
+}
+
+export interface CarbonEstimate {
+  version: 'silaq-distance-v1'
+  originLabel: string | null
+  mode: CarbonTransport | null
+  occupants: number
+  people: number
+  legs: CarbonLeg[]
+  distanceKm: number
+  roadKm: number
+  seaKm: number
+  transportKg: number
+  accommodationKg: number
+  totalKg: number
+  missing: string[]
 }
 
 export interface BookingVoucher {
@@ -89,4 +122,5 @@ export interface TravelBooking {
   total: number
   vouchers: BookingVoucher[]
   itinerary: ItineraryStop[]
+  carbon?: CarbonEstimate
 }

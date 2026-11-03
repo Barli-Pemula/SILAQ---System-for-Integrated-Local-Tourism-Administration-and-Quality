@@ -1459,6 +1459,27 @@ input[type='radio'] {
     grid-template-columns: 1fr;
   }
 }
+.carbon-location-action { display: flex; flex-direction: column; justify-content: flex-end; gap: .5rem; min-width: 0; }
+.carbon-location-action small { color: #64748b; font-size: .68rem; line-height: 1.6; }
+.carbon-return-option { display: flex; align-items: flex-start; gap: .65rem; margin-top: 1rem; color: #475569; font-size: .78rem; line-height: 1.6; }
+.carbon-return-option input { margin-top: .2rem; accent-color: #059669; }
+.carbon-checkout-estimate { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.2rem; padding: 1rem; border: 1px solid #a7f3d0; border-radius: 1rem; background: #ecfdf5; }
+.carbon-checkout-estimate small, .carbon-report-metrics small { display: block; color: #64748b; font-size: .65rem; line-height: 1.5; }
+.carbon-checkout-estimate strong, .carbon-report-metrics strong { display: block; margin-top: .3rem; font-size: 1rem; color: #065f46; }
+.carbon-summary-note { display: flex; flex-direction: column; gap: .5rem; padding: 1rem 0; font-size: .75rem; color: #475569; }
+.carbon-summary-note strong { color: #065f46; }
+.carbon-report-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+.carbon-order-list { display: grid; gap: 1rem; }
+.carbon-method-details { margin-top: 1rem; color: #475569; font-size: .75rem; }
+.carbon-method-details summary { cursor: pointer; color: #0284c7; font-weight: 600; }
+.carbon-route-list { margin-top: 1rem; display: grid; gap: .7rem; }
+.carbon-route-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; border-bottom: 1px solid #f1f5f9; padding-bottom: .6rem; }
+.carbon-route-list strong { color: #334155; white-space: nowrap; }
+.carbon-coverage-list { list-style: disc; padding-left: 1rem; margin-top: .6rem; line-height: 1.7; }
+.carbon-bundle-distance { color: #047857; }
+.carbon-bundle-distance svg { display: inline; vertical-align: -.15rem; margin-right: .35rem; }
+.carbon-preview { position: relative; border-color: #bae6fd; }
+@media (min-width: 640px) { .carbon-report-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

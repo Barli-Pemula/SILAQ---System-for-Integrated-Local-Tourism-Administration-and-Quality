@@ -9,7 +9,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "setup": "node --conditions=react-server --import tsx scripts/setup.ts",
-    "test:server": "node --conditions=react-server --import tsx --test tests/booking-server.test.ts tests/http-origin.test.ts tests/presentation.test.ts",
+    "test:server": "node --conditions=react-server --import tsx --test tests/booking-server.test.ts tests/http-origin.test.ts tests/presentation.test.ts tests/carbon.test.ts",
     "test:presentation": "node scripts/test-presentation.mjs",
     "test:browser": "node scripts/test-browser.mjs",
     "setup:gilang": "node --conditions=react-server --import tsx scripts/create-gilang-accounts.ts",

@@ -12,6 +12,7 @@ import { bookingQuote, validateBooking } from '../booking-rules'
 import { query, Sql, transaction } from './db'
 import { appOrigin, HttpError, paymentMode } from './http'
 import { PRIVATE_ITINERARIES } from './itineraries'
+import { estimateCarbon } from '../carbon'
 
 type StoredBooking = TravelBooking & {
   voucherPlan: BookingVoucher[]
@@ -260,6 +261,7 @@ export async function createBooking(
     expiresAt: new Date(expires).toISOString(),
     draft,
     ...quote,
+    carbon: estimateCarbon(product, draft, MARKET_PRODUCTS),
     vouchers: [],
     itinerary: [],
     voucherPlan: vouchers,

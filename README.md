@@ -22,6 +22,16 @@ Tidak ada pembayaran atau reservasi mitra nyata. Mode ini tidak aktif ketika `PA
 
 ## Pengembangan lokal
 
+### Estimasi jejak karbon
+
+Checkout menyediakan titik keberangkatan opsional, moda darat, peserta per kendaraan, dan opsi kembali ke titik awal. Tombol lokasi meminta izin sekali, memilih titik kawasan terdekat dalam 35 km, dan tidak menyimpan atau mengirim koordinat presisi. Jika izin ditolak, tidak akurat, atau di luar kawasan, pilihan manual tetap tersedia.
+
+Overview bundling menampilkan estimasi jarak antar destinasi. Checkout memperbarui estimasi langsung dan menyediakan tautan Carbon Footprint; kembali dari laporan mempertahankan isian. Laporan memisahkan pratinjau belum dibayar dari total pesanan lunas. Data pesanan dan snapshot perhitungan bertahan setelah reload, baik pada mode server maupun mode presentasi. Pemesanan server menghitung ulang hasil dari input yang divalidasi; angka emisi atau koordinat tambahan dari klien tidak diterima sebagai hasil perhitungan.
+
+Metode `silaq-distance-v1` menggunakan titik kawasan perkiraan, Haversine × 1,35 untuk darat, dan garis lurus untuk laut. Ini estimasi awal, bukan rute jalan terverifikasi atau bukti perjalanan aktual. Perjalanan kapal dihitung sekali jalan; akses pulau pada tiket destinasi diperkirakan pulang-pergi ke dermaga. Tidak ada layanan peta pihak ketiga atau API key tambahan. Ganti pendekatan jarak ini dengan rute/operator yang tervalidasi sebelum menjadikannya dasar pelaporan resmi.
+
+Faktor bersumber dari [DESNZ 2026, flat file revisi Juli](https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2026): mobil bensin 0,16152 kg CO₂e/kendaraan-km, motor kecil 0,08319, coach 0,03948 kg CO₂e/penumpang-km, feri pejalan kaki 0,01871, dan hotel Indonesia 62,7 kg CO₂e/kamar/malam. Faktor transportasi Inggris adalah pendekatan, bukan pengukuran operator Lombok. Jumlah mobil/motor dibulatkan ke atas; akses hotel memakai asumsi 2 tamu/kamar. Produksi bahan bakar, penerbangan, makanan, dan aktivitas di lokasi belum termasuk. Emisi fast boat/kapal lokal belum dihitung tanpa data operator; jaraknya tetap ditampilkan dan keterbatasannya dijelaskan. Kontribusi konservasi tidak mengurangi total emisi.
+
 Gunakan Node.js 24.
 
 ```powershell

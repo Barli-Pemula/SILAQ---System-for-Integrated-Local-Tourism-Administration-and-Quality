@@ -43,15 +43,17 @@ import {
 import {
   INITIAL_DESTINATIONS,
   INITIAL_EVENTS,
-  CARBON_PROJECTS
 } from '@/lib/smart-tourism-data'
 import { AiAnswer, useAiAssistant } from '@/lib/ai-assistant'
 import { Destination, PengaduanCategory } from '@/types/smart-tourism'
-import { MarketCategory, MarketProduct } from '@/types/marketplace'
+import { BookingDraft, MarketCategory, MarketProduct } from '@/types/marketplace'
 import { SessionUser } from '@/types/auth'
 import { addDays, BOATS, CULINARY_PLACES, dateLabel, HOTELS, MARKET_PRODUCTS, rupiah, todayISO, TOUR_BUNDLES } from '@/lib/marketplace-data'
 import { BookingCheckout, BookingLibrary, ExploreMarketplace, FeaturedBundles, PaymentEnvironmentNotice, TravelShortcuts } from './TravelMarketplace'
 import { ItineraryOverview } from './ItineraryOverview'
+import CarbonFootprint from './CarbonFootprint'
+import { refreshBookings, useBookingState } from '@/lib/booking-store'
+import { carbonNumber, estimateCarbon, summarizeCarbon } from '@/lib/carbon'
 import {
   usePengaduan,
   addPengaduan,
@@ -256,7 +258,7 @@ function DestinationCarouselCard({
   )
 }
 
-function buildConsumerAnswer(raw: string, date: string): AiAnswer {
+function buildConsumerAnswer(raw: string, date: string, carbonTotal: number): AiAnswer {
   const q = raw.toLowerCase().trim()
 
   if (/paket|bundling|itinerary|itenerary|rencana perjalanan|susun rute/.test(q)) {
@@ -385,7 +387,7 @@ function buildConsumerAnswer(raw: string, date: string): AiAnswer {
 
   if (/karbon|hijau|eco|lingkungan|offset|mangrove|sustainable/.test(q)) {
     return {
-      text: 'Jejak karbon perjalananmu tercatat 12,5 kg CO₂, turun 15% dari trip sebelumnya. Kamu bisa meng-offset dengan menanam satu mangrove di Gili Air senilai Rp 25.000 (setara 6.448 kg CO₂ dari program restorasi berjalan).\n\nPilih destinasi berjalan kaki seperti Desa Sade atau Tanjung Aan untuk memperkecil emisi harian.',
+      text: `Estimasi emisi dari pesanan lunasmu adalah ${carbonNumber(carbonTotal)} kg CO₂e untuk seluruh peserta. Buka Carbon Footprint melalui menu Kredit Karbon di profil untuk rincian jarak, transportasi, penginapan, dan cakupan yang belum dihitung.\n\nPilih titik keberangkatan dan moda saat membeli tiket. Berbagi kendaraan dapat mengurangi kebutuhan kendaraan. Kontribusi konservasi tidak otomatis menghapus emisi perjalanan.`,
       followUps: ['Offset karbon sekarang', 'Lihat laporan karbon', 'Destinasi rendah emisi'],
     }
   }
@@ -400,6 +402,10 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
   const [page, setPage] = useState<ConsumerPage>('Beranda')
   const [marketCategory, setMarketCategory] = useState<MarketCategory>('Destinasi')
   const [marketProduct, setMarketProduct] = useState<MarketProduct | null>(null)
+  const [marketDraft, setMarketDraft] = useState<BookingDraft | null>(null)
+  const { bookings, loading: carbonLoading, error: carbonError } = useBookingState()
+  const carbonSummary = summarizeCarbon(bookings, MARKET_PRODUCTS)
+  const carbonPreview = marketProduct && marketDraft ? estimateCarbon(marketProduct, marketDraft, MARKET_PRODUCTS) : null
   const [bookingId, setBookingId] = useState('')
   useEffect(() => {
     const orderId = new URLSearchParams(window.location.search).get('order')
@@ -439,7 +445,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
   } = useAiAssistant({
     initialMessages: INITIAL_MESSAGES,
     stages: AI_STAGES,
-    answer: (input) => buildConsumerAnswer(input, selectedDate),
+    answer: (input) => buildConsumerAnswer(input, selectedDate, carbonSummary.totalKg),
   })
 
   const nav: [ConsumerPage, string][] = [
@@ -472,6 +478,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
   }, [page])
 
   const openMarketBooking = (product: MarketProduct) => {
+    setMarketDraft(null)
     setMarketProduct(product)
     setPage('Pemesanan')
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -731,11 +738,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
           </button>
 
           <button
-            onClick={() =>
-              setNotice(
-                'Laporan karbon perjalanan: 12,5 kg CO₂, turun 15% dari trip sebelumnya.'
-              )
-            }
+            onClick={() => setPage('Karbon')}
             className="feature-card text-left"
           >
             <span className="feature-icon">
@@ -746,7 +749,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
                 Wisata lebih hijau
               </strong>
               <span className="mt-1 block text-xs leading-5 text-slate-500">
-                Pantau dan offset emisi perjalanan dengan mudah
+                Lihat estimasi emisi dari jarak dan pesanan perjalanan
               </span>
             </span>
             <ChevronRight className="ml-auto text-slate-300 h-5 w-5" />
@@ -909,22 +912,18 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
               Jejak perjalananmu
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Emisi perjalanan saat ini 15% lebih rendah dari trip sebelumnya.
+              Estimasi transportasi dan penginapan dari pesanan yang sudah lunas.
             </p>
             <div className="mt-6">
               <strong className="font-display text-4xl text-slate-950">
-                12.5
+                {carbonNumber(carbonSummary.totalKg)}
               </strong>
               <span className="ml-2 text-sm font-semibold text-slate-500">
-                kg CO₂
+                kg CO₂e
               </span>
             </div>
             <button
-              onClick={() =>
-                setNotice(
-                  'Offset yang direkomendasikan: tanam satu mangrove di Gili Air senilai Rp 25.000.'
-                )
-              }
+              onClick={() => setPage('Karbon')}
               className="app-button app-button-secondary mt-7 w-full justify-center border-eco-200 text-eco-700"
             >
               Lihat laporan karbon
@@ -1249,7 +1248,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
     }
 
     if (page === 'Tiket Saya') {
-      return <BookingLibrary selectedId={bookingId} onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
+      return <BookingLibrary selectedId={bookingId} onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} onViewCarbon={() => setPage('Karbon')} />
     }
 
     if (page === 'Kalender') {
@@ -1606,108 +1605,11 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
     }
 
     if (page === 'Pemesanan') {
-      return marketProduct ? <BookingCheckout key={marketProduct.id} product={marketProduct} initialDate={travelDate} onBack={() => exploreCategory(marketProduct.category)} onComplete={booking => selectBooking(booking.id)} /> : <BookingLibrary onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
+      return marketProduct ? <BookingCheckout key={marketProduct.id} product={marketProduct} initialDate={travelDate} initialDraft={marketDraft} onDraftChange={setMarketDraft} onViewCarbon={() => setPage('Karbon')} onBack={() => exploreCategory(marketProduct.category)} onComplete={booking => { setMarketDraft(null); selectBooking(booking.id) }} /> : <BookingLibrary onSelect={selectBooking} onExplore={() => exploreCategory('Paket Wisata')} />
     }
 
     if (page === 'Karbon') {
-      return (
-        <section className="pb-12">
-          <div className="carbon-head">
-            <div className="consumer-container flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
-                  <Leaf className="h-5 w-5" />
-                </span>
-                <div>
-                  <h2 className="font-display text-lg font-bold leading-tight text-white">
-                    Jejak Karbon Anda
-                  </h2>
-                  <p className="mt-0.5 text-[11px] font-medium text-white/80">
-                    Berkontribusi untuk Lombok Hijau
-                  </p>
-                </div>
-              </div>
-              <span className="rounded-full bg-white/20 px-3 py-1.5 text-[10px] font-bold text-white backdrop-blur-md">
-                🌱 Eco-Warrior Lv.2
-              </span>
-            </div>
-          </div>
-
-          <div className="consumer-container -mt-6">
-            <article className="panel-card">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Total emisi perjalanan
-              </p>
-              <p className="mt-2 flex items-end gap-1.5">
-                <strong className="font-display text-4xl font-bold text-slate-900">
-                  12.5
-                </strong>
-                <span className="mb-1 text-sm font-semibold text-slate-500">kg CO₂</span>
-              </p>
-              <p className="mt-1.5 text-xs font-semibold text-emerald-600">
-                ↓ 15% lebih rendah dari trip sebelumnya
-              </p>
-
-              <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
-                <div
-                  className="carbon-donut"
-                  style={{
-                    background:
-                      'conic-gradient(#0ea5e9 0 60%, #f59e0b 60% 84.8%, #14b8a6 84.8% 100%)',
-                  }}
-                >
-                  <span className="carbon-donut-hole" />
-                </div>
-                <ul className="w-full space-y-3">
-                  {[
-                    ['#0ea5e9', 'Transportasi', '7.5 kg'],
-                    ['#f59e0b', 'Akomodasi', '3.1 kg'],
-                    ['#14b8a6', 'Aktivitas', '1.9 kg'],
-                  ].map(([color, label, value]) => (
-                    <li key={label} className="flex items-center gap-2.5 text-xs">
-                      <span
-                        className="h-2.5 w-2.5 shrink-0 rounded-full"
-                        style={{ background: color }}
-                      />
-                      <span className="flex-1 text-slate-600">{label}</span>
-                      <strong className="font-display font-bold text-slate-800">
-                        {value}
-                      </strong>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-
-            <h3 className="font-display mt-8 text-lg font-semibold text-slate-900">
-              Rekomendasi Offset
-            </h3>
-            <div className="mt-4 space-y-3">
-              {CARBON_PROJECTS.map((project) => (
-                <article key={project.id} className="offset-card">
-                  <span className="offset-emoji">{project.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-display text-sm font-bold text-slate-800">
-                      {project.title}
-                    </h4>
-                    <p className="mt-0.5 text-[11px] text-slate-400">
-                      Setara {project.co2OffsetKg} kg CO₂
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setNotice(`Offset “${project.title}” ditambahkan ke keranjang.`)
-                    }
-                    className="shrink-0 text-sm font-bold text-emerald-600"
-                  >
-                    Rp {project.price.toLocaleString('id-ID')}
-                  </button>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )
+      return <CarbonFootprint summary={carbonSummary} preview={carbonPreview} previewTitle={marketProduct?.name} onBackToBooking={() => setPage('Pemesanan')} onExplore={() => exploreCategory('Paket Wisata')} loading={carbonLoading} error={carbonError} onRefresh={() => void refreshBookings()} />
     }
 
     if (page === 'Pengaduan') {
@@ -1920,7 +1822,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
         {
           icon: <Leaf className="h-4 w-4 text-emerald-500" />,
           title: 'Kredit Karbon',
-          subtitle: '45 kg CO₂ teroffset',
+          subtitle: `${carbonNumber(carbonSummary.totalKg)} kg CO₂e estimasi pesanan`,
           action: () => setPage('Karbon'),
         },
         {
@@ -1975,7 +1877,7 @@ export default function ConsumerApp({ onLogout, user }: ConsumerAppProps) {
             <div className="grid grid-cols-3 gap-3">
               {[
                 ['12', 'Total Trip'],
-                ['45 kg', 'Kredit Karbon'],
+                [`${carbonNumber(carbonSummary.totalKg)} kg`, 'Estimasi Emisi'],
                 ['1.250', 'Poin'],
               ].map(([value, label]) => (
                 <div key={label} className="profile-stat-tile">

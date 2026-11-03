@@ -1,7 +1,14 @@
 'use client'
 
 import { useEffect, useId, useRef } from 'react'
-import { ArrowRight, Compass, Hotel, UtensilsCrossed, X } from 'lucide-react'
+import {
+  ArrowRight,
+  Compass,
+  Hotel,
+  MapPin,
+  UtensilsCrossed,
+  X,
+} from 'lucide-react'
 import {
   CULINARY_PLACES,
   HOTELS,
@@ -9,6 +16,8 @@ import {
   rupiah,
 } from '@/lib/marketplace-data'
 import { MarketProduct } from '@/types/marketplace'
+import { defaultDraft } from '@/lib/booking-rules'
+import { carbonNumber, estimateCarbon } from '@/lib/carbon'
 
 export function ItineraryOverview({
   product,
@@ -59,6 +68,20 @@ export function ItineraryOverview({
           )
         })}
       </ol>
+      {product.destinationIds && (
+        <p className="overview-note carbon-bundle-distance">
+          <MapPin size={14} />
+          Estimasi jarak antar destinasi:{' '}
+          <strong>
+            {carbonNumber(
+              estimateCarbon(product, defaultDraft(product), MARKET_PRODUCTS)
+                .distanceKm
+            )}{' '}
+            km
+          </strong>
+          . Akses awal, perjalanan pulang, dan hotel belum termasuk.
+        </p>
+      )}
       <div className="overview-recommendations">
         {food && (
           <p>
